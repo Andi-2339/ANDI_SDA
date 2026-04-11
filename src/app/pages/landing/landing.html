@@ -1,0 +1,39 @@
+<div class="landing-container">
+  <!-- Hero Section -->
+  <header class="landing-header">
+    <nav class="landing-nav">
+      <div class="nav-brand">
+        <img src="logo.png" alt="Logo" style="height: 40px; border-radius: 50%;">
+        <span class="brand-text">ANDI SDA</span>
+      </div>
+      <div class="nav-actions">
+        <p-button label="Iniciar Sesion" [outlined]="true" routerLink="/auth/login" />
+        <p-button label="Registrarse" routerLink="/auth/register" />
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">Bienvenido a es Web, presiona para comenzar a descubrir</h1>
+      <p class="hero-subtitle">
+        Plataforma integral de planificacion de recursos empresariales.
+        Controla inventarios, finanzas, ventas y mas desde un solo lugar.
+      </p>
+      <div class="hero-actions">
+        <p-button label="Comenzar ahora" icon="pi pi-arrow-right" iconPos="right" size="large"
+          routerLink="/auth/register" />
+        <p-button label="Ya tengo cuenta" icon="pi pi-sign-in" size="large" [outlined]="true"
+          routerLink="/auth/login" />
+      </div>
+    </div>
+  </section>
+
+  <p-divider />
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <p>&copy; 2026 ANDI SDA Todos los derechos reservados.</p>
+  </footer>
+</div>

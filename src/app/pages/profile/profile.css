@@ -1,0 +1,215 @@
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+  gap: 2rem;
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 600px;
+  background-color: var(--p-surface-0);
+  border-radius: 12px;
+  padding: 2.5rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: opacity 0.3s ease, border-color 0.3s ease;
+}
+
+.profile-card.profile-deleted {
+  border: 2px solid var(--p-red-300);
+  opacity: 0.75;
+}
+
+/* Header */
+.profile-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: var(--p-primary-50);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-header h1 {
+  margin: 0.75rem 0 0.25rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--p-surface-900);
+}
+
+.profile-subtitle {
+  color: var(--p-surface-500);
+  font-size: 0.95rem;
+  margin: 0 0 0.5rem;
+}
+
+:host ::ng-deep .deleted-tag {
+  margin-top: 0.5rem;
+}
+
+/* Action buttons */
+.profile-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+/* Form */
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--p-surface-900);
+}
+
+.field-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-label {
+  font-size: 0.9rem;
+  color: var(--p-surface-700);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Validation messages */
+.validation-error {
+  color: var(--p-red-500);
+  font-size: 0.8rem;
+  display: block;
+}
+
+.validation-success {
+  color: var(--p-green-500);
+  font-size: 0.8rem;
+}
+
+.password-requirements {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.password-hint {
+  margin-top: 0.15rem;
+}
+
+.password-hint small {
+  color: var(--p-surface-500);
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.form-hint {
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.form-hint small {
+  color: var(--p-surface-500);
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Readonly state */
+:host ::ng-deep .w-full {
+  width: 100%;
+}
+
+:host ::ng-deep input[pInputText] {
+  color: var(--p-surface-900) !important;
+}
+
+:host ::ng-deep input[readonly] {
+  background-color: var(--p-surface-100);
+  color: var(--p-surface-900) !important;
+  cursor: default;
+}
+
+:host ::ng-deep .p-password .p-password-input {
+  color: var(--p-surface-900) !important;
+}
+
+:host ::ng-deep .p-password.p-disabled .p-password-input {
+  background-color: var(--p-surface-100);
+  color: var(--p-surface-900) !important;
+  cursor: default;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .profile-card {
+    padding: 1.5rem;
+  }
+
+  .profile-actions {
+    flex-direction: column;
+  }
+
+  .assigned-tickets-card {
+    padding: 1.5rem;
+  }
+}
+
+/* Assigned Tickets */
+.assigned-tickets-card {
+  width: 100%;
+  max-width: 900px;
+  background-color: var(--p-surface-0);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.assigned-tickets-title {
+  margin: 0 0 1.5rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--p-surface-900);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.assigned-tickets-title i {
+  color: var(--p-primary-color);
+}
+
+.no-tickets {
+  color: var(--p-surface-500);
+  font-style: italic;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.ticket-title-cell {
+  font-weight: 600;
+  color: var(--p-surface-0);
+}

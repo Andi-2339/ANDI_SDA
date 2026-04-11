@@ -1,0 +1,211 @@
+<div class="register-container">
+  <p-toast />
+  
+  <div class="register-card">
+    <div class="register-header">
+      <a routerLink="/home/landing" class="back-link">
+        <i class="pi pi-arrow-left"></i>
+      </a>
+      <div class="register-brand">
+        <img src="logo.png" alt="Logo" style="height: 40px; border-radius: 50%;">
+        <h1>ANDI SDA</h1>
+      </div>
+      <p class="register-subtitle">Crea tu cuenta</p>
+    </div>
+
+    <form (ngSubmit)="onRegister()" class="register-form">
+      <div class="field">
+        <label for="username">Usuario *</label>
+        <input
+          id="username"
+          type="text"
+          pInputText
+          placeholder="Nombre de usuario"
+          [ngModel]="username()"
+          (ngModelChange)="username.set($event)"
+          name="username"
+          class="w-full"
+          required
+        />
+        @if (usernameError()) {
+          <span class="validation-error">{{ usernameError() }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="fullName">Nombre completo *</label>
+        <input
+          id="fullName"
+          type="text"
+          pInputText
+          placeholder="Tu nombre completo"
+          [ngModel]="fullName()"
+          (ngModelChange)="fullName.set($event)"
+          name="fullName"
+          class="w-full"
+          required
+        />
+        @if (fullNameError()) {
+          <span class="validation-error">{{ fullNameError() }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="email">Correo electronico *</label>
+        <input
+          id="email"
+          type="text"
+          pInputText
+          placeholder="correo@ejemplo.com"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)"
+          name="email"
+          class="w-full"
+          required
+        />
+        @if (emailError()) {
+          <span class="validation-error">{{ emailError() }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="phone">Telefono *</label>
+        <input
+          id="phone"
+          type="text"
+          pInputText
+          placeholder="1234567890"
+          [ngModel]="phone()"
+          (ngModelChange)="phone.set($event)"
+          name="phone"
+          class="w-full"
+          maxlength="10"
+          required
+        />
+        @if (phoneError()) {
+          <span class="validation-error">{{ phoneError() }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="address">Direccion *</label>
+        <input
+          id="address"
+          type="text"
+          pInputText
+          placeholder="Calle, numero, colonia, ciudad"
+          [ngModel]="address()"
+          (ngModelChange)="address.set($event)"
+          name="address"
+          class="w-full"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label for="password">Contrasena *</label>
+        <p-password
+          id="password"
+          [ngModel]="password()"
+          (ngModelChange)="password.set($event)"
+          name="password"
+          placeholder="Crea una contrasena segura"
+          [toggleMask]="true"
+          [feedback]="false"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+          required
+        />
+        @if (passwordErrors().length > 0) {
+          <div class="password-requirements">
+            @for (error of passwordErrors(); track error) {
+              <span class="validation-error">{{ error }}</span>
+            }
+          </div>
+        }
+        <div class="password-hint">
+          <small>
+            <i class="pi pi-info-circle"></i>
+            Minimo 10 caracteres, sin espacios, con simbolos especiales (!@#$%^&*)
+          </small>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="confirmPassword">Confirmar contrasena *</label>
+        <p-password
+          id="confirmPassword"
+          [ngModel]="confirmPassword()"
+          (ngModelChange)="confirmPassword.set($event)"
+          name="confirmPassword"
+          placeholder="Repite tu contrasena"
+          [toggleMask]="true"
+          [feedback]="false"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+          required
+        />
+        @if (passwordsDontMatch()) {
+          <span class="validation-error">Las contrasenas no coinciden</span>
+        }
+        @if (passwordsMatch()) {
+          <span class="validation-success">Las contrasenas coinciden</span>
+        }
+      </div>
+
+      <div class="field-checkbox">
+        <p-checkbox
+          [ngModel]="isAdult()"
+          (ngModelChange)="isAdult.set($event)"
+          name="isAdult"
+          [binary]="true"
+          inputId="isAdult"
+        />
+        <label for="isAdult" class="checkbox-label">Acepto que soy mayor de edad *</label>
+      </div>
+
+      <div class="field-checkbox">
+        <p-checkbox
+          [ngModel]="acceptTerms()"
+          (ngModelChange)="acceptTerms.set($event)"
+          name="acceptTerms"
+          [binary]="true"
+          inputId="acceptTerms"
+        />
+        <label for="acceptTerms" class="checkbox-label">Acepto los terminos y condiciones *</label>
+      </div>
+
+      <p-button
+        type="submit"
+        label="Crear cuenta"
+        icon="pi pi-user-plus"
+        styleClass="w-full"
+        [disabled]="!isFormValid()"
+      />
+
+      @if (!isFormValid()) {
+        <div class="form-hint">
+          <small>
+            <i class="pi pi-info-circle"></i>
+            Completa todos los campos correctamente para continuar
+          </small>
+        </div>
+      }
+    </form>
+
+    <p-divider align="center">
+      <span class="divider-text">o</span>
+    </p-divider>
+
+    <div class="register-footer">
+      <p>Ya tienes cuenta?
+        <a routerLink="/auth/login" class="login-link">Inicia sesion</a>
+      </p>
+      <p class="home-link-wrapper">
+        <a routerLink="/home/landing" class="home-link">
+          <i class="pi pi-home"></i> Volver al inicio
+        </a>
+      </p>
+    </div>
+  </div>
+</div>

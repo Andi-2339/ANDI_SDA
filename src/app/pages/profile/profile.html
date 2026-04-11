@@ -1,0 +1,316 @@
+<p-toast />
+<p-confirmdialog />
+
+<div class="profile-container">
+  <div class="profile-card" [class.profile-deleted]="deleted()">
+
+    <!-- Header -->
+    <div class="profile-header">
+      <div class="profile-avatar">
+        <i class="pi pi-user" style="font-size: 2rem; color: var(--p-primary-color)"></i>
+      </div>
+      <h1>Mi Perfil</h1>
+      <p class="profile-subtitle">Informacion de tu cuenta</p>
+      @if (deleted()) {
+        <p-tag value="Cuenta desactivada" severity="danger" styleClass="deleted-tag" />
+      }
+    </div>
+
+    <!-- Action buttons -->
+    <div class="profile-actions">
+      @if (!deleted()) {
+        @if (!editing()) {
+          <p-button
+            label="Editar"
+            icon="pi pi-pencil"
+            severity="info"
+            (onClick)="startEdit()"
+          />
+          <p-button
+            label="Desactivar cuenta"
+            icon="pi pi-trash"
+            severity="danger"
+            [outlined]="true"
+            (onClick)="confirmDelete()"
+          />
+        } @else {
+          <p-button
+            label="Guardar"
+            icon="pi pi-check"
+            severity="success"
+            [disabled]="!isFormValid()"
+            (onClick)="saveProfile()"
+          />
+          <p-button
+            label="Cancelar"
+            icon="pi pi-times"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="cancelEdit()"
+          />
+        }
+      } @else {
+        <p-button
+          label="Restaurar cuenta"
+          icon="pi pi-refresh"
+          severity="success"
+          (onClick)="restoreAccount()"
+        />
+      }
+    </div>
+
+    <!-- Form -->
+    <div class="profile-form">
+
+      <!-- Usuario -->
+      <div class="field">
+        <label for="username">Usuario</label>
+        <input
+          id="username"
+          type="text"
+          pInputText
+          [ngModel]="username()"
+          (ngModelChange)="username.set($event)"
+          name="username"
+          class="w-full"
+          [readonly]="!editing()"
+        />
+        @if (usernameError()) {
+          <span class="validation-error">{{ usernameError() }}</span>
+        }
+      </div>
+
+      <!-- Nombre completo -->
+      <div class="field">
+        <label for="fullName">Nombre completo</label>
+        <input
+          id="fullName"
+          type="text"
+          pInputText
+          [ngModel]="fullName()"
+          (ngModelChange)="fullName.set($event)"
+          name="fullName"
+          class="w-full"
+          [readonly]="!editing()"
+        />
+        @if (fullNameError()) {
+          <span class="validation-error">{{ fullNameError() }}</span>
+        }
+      </div>
+
+      <!-- Correo electronico -->
+      <div class="field">
+        <label for="email">Correo electronico</label>
+        <input
+          id="email"
+          type="text"
+          pInputText
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)"
+          name="email"
+          class="w-full"
+          [readonly]="!editing()"
+        />
+        @if (emailError()) {
+          <span class="validation-error">{{ emailError() }}</span>
+        }
+      </div>
+
+      <!-- Telefono -->
+      <div class="field">
+        <label for="phone">Telefono</label>
+        <input
+          id="phone"
+          type="text"
+          pInputText
+          [ngModel]="phone()"
+          (ngModelChange)="phone.set($event)"
+          name="phone"
+          class="w-full"
+          maxlength="10"
+          [readonly]="!editing()"
+        />
+        @if (phoneError()) {
+          <span class="validation-error">{{ phoneError() }}</span>
+        }
+      </div>
+
+      <!-- Direccion -->
+      <div class="field">
+        <label for="address">Direccion</label>
+        <input
+          id="address"
+          type="text"
+          pInputText
+          [ngModel]="address()"
+          (ngModelChange)="address.set($event)"
+          name="address"
+          class="w-full"
+          [readonly]="!editing()"
+        />
+        @if (addressError()) {
+          <span class="validation-error">{{ addressError() }}</span>
+        }
+      </div>
+
+      <!-- Contrasena -->
+      <div class="field">
+        <label for="password">Contrasena</label>
+        <p-password
+          id="password"
+          [ngModel]="password()"
+          (ngModelChange)="password.set($event)"
+          name="password"
+          [toggleMask]="true"
+          [feedback]="false"
+          [disabled]="!editing()"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+        />
+        @if (passwordErrors().length > 0) {
+          <div class="password-requirements">
+            @for (error of passwordErrors(); track error) {
+              <span class="validation-error">{{ error }}</span>
+            }
+          </div>
+        }
+        @if (editing()) {
+          <div class="password-hint">
+            <small>
+              <i class="pi pi-info-circle"></i>
+              Minimo 10 caracteres, sin espacios, con simbolos especiales (!@#$%^&*)
+            </small>
+          </div>
+        }
+      </div>
+
+      <!-- Confirmar contrasena -->
+      <div class="field">
+        <label for="confirmPassword">Confirmar contrasena</label>
+        <p-password
+          id="confirmPassword"
+          [ngModel]="confirmPassword()"
+          (ngModelChange)="confirmPassword.set($event)"
+          name="confirmPassword"
+          [toggleMask]="true"
+          [feedback]="false"
+          [disabled]="!editing()"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+        />
+        @if (passwordsDontMatch()) {
+          <span class="validation-error">Las contrasenas no coinciden</span>
+        }
+        @if (editing() && passwordsMatch()) {
+          <span class="validation-success">Las contrasenas coinciden</span>
+        }
+      </div>
+
+      <!-- Checkboxes -->
+      <div class="field-checkbox">
+        <p-checkbox
+          [ngModel]="isAdult()"
+          (ngModelChange)="isAdult.set($event)"
+          name="isAdult"
+          [binary]="true"
+          inputId="isAdult"
+          [disabled]="!editing()"
+        />
+        <label for="isAdult" class="checkbox-label">Acepto que soy mayor de edad</label>
+      </div>
+
+      <div class="field-checkbox">
+        <p-checkbox
+          [ngModel]="acceptTerms()"
+          (ngModelChange)="acceptTerms.set($event)"
+          name="acceptTerms"
+          [binary]="true"
+          inputId="acceptTerms"
+          [disabled]="!editing()"
+        />
+        <label for="acceptTerms" class="checkbox-label">Acepto los terminos y condiciones</label>
+      </div>
+
+      <!-- Form hint when editing -->
+      @if (editing() && !isFormValid()) {
+        <div class="form-hint">
+          <small>
+            <i class="pi pi-info-circle"></i>
+            Completa todos los campos correctamente para poder guardar
+          </small>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Assigned Tickets -->
+  <div class="assigned-tickets-card">
+    <h2 class="assigned-tickets-title">
+      <i class="pi pi-ticket"></i>
+      Mis Tickets Asignados ({{ assignedTickets().length }})
+    </h2>
+    @if (assignedTickets().length === 0) {
+      <p class="no-tickets">No tienes tickets asignados actualmente.</p>
+    } @else {
+      <p-table
+        [value]="assignedTickets()"
+        [paginator]="true"
+        [rows]="5"
+        [rowsPerPageOptions]="[5, 10]"
+        [rowHover]="true"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} tickets"
+        dataKey="id"
+        styleClass="p-datatable-striped"
+      >
+        <ng-template #header>
+          <tr>
+            <th pSortableColumn="id" style="min-width: 4rem">
+              ID <p-sortIcon field="id" />
+            </th>
+            <th pSortableColumn="titulo" style="min-width: 12rem">
+              Titulo <p-sortIcon field="titulo" />
+            </th>
+            <th pSortableColumn="estado" style="min-width: 8rem">
+              Estado <p-sortIcon field="estado" />
+            </th>
+            <th pSortableColumn="prioridad" style="min-width: 7rem">
+              Prioridad <p-sortIcon field="prioridad" />
+            </th>
+            <th pSortableColumn="fechaLimite" style="min-width: 8rem">
+              Limite <p-sortIcon field="fechaLimite" />
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-ticket>
+          <tr>
+            <td>{{ ticket.id }}</td>
+            <td>
+              <span class="ticket-title-cell">{{ ticket.titulo }}</span>
+            </td>
+            <td>
+              <p-tag
+                [value]="ticket.estado"
+                [severity]="getEstadoSeverity(ticket.estado)"
+              />
+            </td>
+            <td>
+              <p-tag
+                [value]="ticket.prioridad"
+                [severity]="getPrioridadSeverity(ticket.prioridad)"
+              />
+            </td>
+            <td>{{ ticket.fechaLimite }}</td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 2rem; color: var(--p-surface-400);">
+              No se encontraron tickets
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </div>
+</div>

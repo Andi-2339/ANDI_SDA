@@ -1,0 +1,197 @@
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: transparent;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 480px;
+  background: #000000;
+  border-radius: 12px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.back-link {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--p-surface-500);
+  text-decoration: none;
+  font-size: 1.2rem;
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: var(--p-primary-color);
+}
+
+.register-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.register-brand h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.register-subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #ffffff;
+}
+
+.field-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-label {
+  font-size: 0.9rem;
+  color: #ffffff;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label:hover {
+  color: var(--p-primary-200);
+}
+
+.w-full {
+  width: 100%;
+}
+
+.divider-text {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.register-footer {
+  text-align: center;
+}
+
+.register-footer p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+  margin: 0 0 0.75rem 0;
+}
+
+.login-link {
+  color: var(--p-primary-color);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
+.home-link-wrapper {
+  margin-top: 0.5rem;
+}
+
+.home-link {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: color 0.2s ease;
+}
+
+.home-link:hover {
+  color: var(--p-primary-200);
+}
+
+.validation-error {
+  color: #e53e3e;
+  display: block;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.validation-success {
+  color: #38a169;
+  display: block;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.password-requirements {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.password-hint {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(138, 43, 226, 0.1);
+  border-radius: 4px;
+  border-left: 3px solid var(--p-primary-color);
+}
+
+.password-hint small {
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+}
+
+.form-hint {
+  margin-top: -0.5rem;
+  padding: 0.75rem;
+  background-color: rgba(138, 43, 226, 0.1);
+  border-radius: 6px;
+  border-left: 3px solid var(--p-primary-color);
+  text-align: center;
+}
+
+.form-hint small {
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+

@@ -1,0 +1,101 @@
+/* You can add global styles to this file, and also import other style files */
+@import 'primeicons/primeicons.css';
+
+body {
+  font-family: 'Josefin Sans', sans-serif;
+}
+
+/* ── Dark DataTable Theme ── */
+.p-datatable .p-datatable-thead > tr > th {
+  background: var(--p-surface-800) !important;
+  color: var(--p-surface-100) !important;
+  border-color: var(--p-surface-700) !important;
+}
+
+.p-datatable .p-datatable-tbody > tr {
+  background: var(--p-surface-900) !important;
+  color: var(--p-surface-200) !important;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+  border-color: var(--p-surface-700) !important;
+  color: var(--p-surface-200) !important;
+}
+
+.p-datatable.p-datatable-striped .p-datatable-tbody > tr:nth-child(even) {
+  background: var(--p-surface-800) !important;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background: var(--p-surface-700) !important;
+}
+
+.p-datatable .p-sortable-column:hover {
+  background: var(--p-surface-700) !important;
+}
+
+.p-datatable .p-sortable-column .p-sortable-column-icon {
+  color: var(--p-surface-400) !important;
+}
+
+.p-datatable .p-paginator {
+  background: var(--p-surface-800) !important;
+  color: var(--p-surface-200) !important;
+  border-color: var(--p-surface-700) !important;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+}
+
+footer {
+  margin-top: auto;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body{
+  min-height:100vh;
+
+  background: #483D8B;
+  color: #ffffff;
+  background-attachment: fixed;
+}
+
+main{
+  flex:1;
+}
+
+header{
+  background:#000;
+  color:white;
+  padding:15px 40px;
+  border-bottom:1px solid #8a2be2;
+}
+
+footer{
+  background:#000;
+  text-align:center;
+  padding:15px;
+  color:#aaa;
+}
+
+/* Button hover glow effect */
+.p-button:hover, button:hover {
+  box-shadow: 0 0 12px 3px rgba(186, 85, 211, 0.7) !important;
+  transition: box-shadow 0.3s ease-in-out;
+}

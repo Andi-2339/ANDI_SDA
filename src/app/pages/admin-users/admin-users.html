@@ -1,0 +1,331 @@
+<p-toast />
+<p-confirmdialog />
+
+<div class="admin-users-container">
+  <div class="admin-users-header">
+    <h1 class="admin-users-title">Gestion de Usuarios</h1>
+  </div>
+
+  <!-- Toolbar -->
+  <p-toolbar styleClass="admin-users-toolbar">
+    <ng-template #start>
+      <p-button
+        label="Nuevo Usuario"
+        icon="pi pi-plus"
+        severity="primary"
+        (onClick)="openNew()"
+      />
+    </ng-template>
+    <ng-template #end>
+      <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+          pInputText
+          [ngModel]="searchValue()"
+          (ngModelChange)="searchValue.set($event)"
+          placeholder="Buscar usuarios..."
+        />
+      </p-iconfield>
+    </ng-template>
+  </p-toolbar>
+
+  <!-- Table -->
+  <p-table
+    [value]="filteredUsers()"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[5, 10, 25]"
+    [tableStyle]="{ 'min-width': '70rem' }"
+    [rowHover]="true"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} usuarios"
+    dataKey="id"
+    styleClass="p-datatable-striped"
+  >
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="id" style="min-width: 5rem">
+          ID <p-sortIcon field="id" />
+        </th>
+        <th pSortableColumn="username" style="min-width: 8rem">
+          Usuario <p-sortIcon field="username" />
+        </th>
+        <th pSortableColumn="fullName" style="min-width: 12rem">
+          Nombre completo <p-sortIcon field="fullName" />
+        </th>
+        <th pSortableColumn="email" style="min-width: 12rem">
+          Email <p-sortIcon field="email" />
+        </th>
+        <th pSortableColumn="phone" style="min-width: 8rem">
+          Telefono <p-sortIcon field="phone" />
+        </th>
+        <th pSortableColumn="groupId" style="min-width: 5rem">
+          Grupo <p-sortIcon field="groupId" />
+        </th>
+        <th style="min-width: 5rem">Estado</th>
+        <th style="min-width: 10rem; text-align: center">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-user>
+      <tr>
+        <td>{{ user.id }}</td>
+        <td>
+          <span class="user-username">{{ user.username }}</span>
+        </td>
+        <td>{{ user.fullName }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.phone }}</td>
+        <td>{{ user.groupId }}</td>
+        <td>
+          <p-tag
+            [value]="user.active ? 'Activo' : 'Inactivo'"
+            [severity]="user.active ? 'success' : 'danger'"
+          />
+        </td>
+        <td class="actions-cell">
+          @if (canManageRoles()) {
+            <p-button
+              icon="pi pi-shield"
+              [rounded]="true"
+              severity="info"
+              [text]="true"
+              pTooltip="Permisos"
+              tooltipPosition="top"
+              (onClick)="openPermissions(user)"
+            />
+          }
+          <p-button
+            icon="pi pi-pencil"
+            [rounded]="true"
+            severity="warn"
+            [text]="true"
+            pTooltip="Editar"
+            tooltipPosition="top"
+            (onClick)="editUser(user)"
+          />
+          <p-button
+            icon="pi pi-trash"
+            [rounded]="true"
+            severity="danger"
+            [text]="true"
+            pTooltip="Eliminar"
+            tooltipPosition="top"
+            (onClick)="confirmDelete(user)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="8" class="empty-message">
+          <i class="pi pi-users empty-icon"></i>
+          <span>No se encontraron usuarios</span>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Create / Edit Dialog -->
+<p-dialog
+  [header]="dialogTitle()"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [style]="{ width: '45rem' }"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="hideDialog()"
+  styleClass="admin-users-dialog"
+>
+  <div class="dialog-content">
+    <div class="form-grid">
+      <!-- Username -->
+      <div class="field">
+        <label for="username">Usuario <span class="required">*</span></label>
+        <input
+          pInputText
+          id="username"
+          [ngModel]="editUsername()"
+          (ngModelChange)="editUsername.set($event)"
+          placeholder="Nombre de usuario"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted() && !editUsername().trim() }"
+        />
+        @if (submitted() && !editUsername().trim()) {
+          <small class="field-error">El usuario es requerido.</small>
+        }
+      </div>
+
+      <!-- Full Name -->
+      <div class="field">
+        <label for="fullName">Nombre completo <span class="required">*</span></label>
+        <input
+          pInputText
+          id="fullName"
+          [ngModel]="editFullName()"
+          (ngModelChange)="editFullName.set($event)"
+          placeholder="Nombre completo"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted() && !editFullName().trim() }"
+        />
+        @if (submitted() && !editFullName().trim()) {
+          <small class="field-error">El nombre es requerido.</small>
+        }
+      </div>
+
+      <!-- Email -->
+      <div class="field">
+        <label for="email">Email <span class="required">*</span></label>
+        <input
+          pInputText
+          id="email"
+          [ngModel]="editEmail()"
+          (ngModelChange)="editEmail.set($event)"
+          placeholder="Correo electronico"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted() && !editEmail().trim() }"
+        />
+        @if (submitted() && !editEmail().trim()) {
+          <small class="field-error">El email es requerido.</small>
+        }
+      </div>
+
+      <!-- Phone -->
+      <div class="field">
+        <label for="phone">Telefono <span class="required">*</span></label>
+        <input
+          pInputText
+          id="phone"
+          [ngModel]="editPhone()"
+          (ngModelChange)="editPhone.set($event)"
+          placeholder="Telefono"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted() && !editPhone().trim() }"
+        />
+        @if (submitted() && !editPhone().trim()) {
+          <small class="field-error">El telefono es requerido.</small>
+        }
+      </div>
+
+      <!-- Address -->
+      <div class="field field-full">
+        <label for="address">Direccion <span class="required">*</span></label>
+        <input
+          pInputText
+          id="address"
+          [ngModel]="editAddress()"
+          (ngModelChange)="editAddress.set($event)"
+          placeholder="Direccion"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted() && !editAddress().trim() }"
+        />
+        @if (submitted() && !editAddress().trim()) {
+          <small class="field-error">La direccion es requerida.</small>
+        }
+      </div>
+
+      <!-- Group -->
+      <div class="field">
+        <label for="groupId">Grupo</label>
+        <p-select
+          id="groupId"
+          [options]="groupOptions()"
+          [ngModel]="editGroupId()"
+          (ngModelChange)="editGroupId.set($event)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccionar grupo"
+          styleClass="w-full"
+        />
+      </div>
+
+      <!-- Active -->
+      <div class="field">
+        <label for="active">Estado</label>
+        <p-select
+          id="active"
+          [options]="activeOptions"
+          [ngModel]="editActive()"
+          (ngModelChange)="editActive.set($event)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Estado"
+          styleClass="w-full"
+        />
+      </div>
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <p-button
+      label="Cancelar"
+      icon="pi pi-times"
+      severity="secondary"
+      [text]="true"
+      (onClick)="hideDialog()"
+    />
+    <p-button
+      label="Guardar"
+      icon="pi pi-check"
+      (onClick)="saveUser()"
+    />
+  </ng-template>
+</p-dialog>
+
+<!-- Permissions Dialog -->
+<p-dialog
+  header="Permisos del Usuario"
+  [(visible)]="permissionsDialogVisible"
+  [modal]="true"
+  [style]="{ width: '40rem' }"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="hidePermissionsDialog()"
+  styleClass="permissions-dialog"
+>
+  <div class="permissions-content">
+    <div class="permissions-user-info">
+      <i class="pi pi-user"></i>
+      <span>{{ permissionsUserName() }}</span>
+    </div>
+
+    <div class="permissions-table">
+      <div class="permissions-header-row">
+        <div class="permissions-module-header">Modulo</div>
+        @for (action of permissionActions; track action.key) {
+          <div class="permissions-action-header">{{ action.label }}</div>
+        }
+      </div>
+
+      @for (module of permissionModules; track module.key) {
+        <div class="permissions-row">
+          <div class="permissions-module-cell">
+            <i [class]="module.icon"></i>
+            <span>{{ module.label }}</span>
+          </div>
+          @for (action of permissionActions; track action.key) {
+            <div class="permissions-action-cell">
+              <p-checkbox
+                [ngModel]="getPermission(module.key, action.key)"
+                (ngModelChange)="setPermission(module.key, action.key, $event)"
+                [binary]="true"
+              />
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <p-button
+      label="Cancelar"
+      icon="pi pi-times"
+      severity="secondary"
+      [text]="true"
+      (onClick)="hidePermissionsDialog()"
+    />
+    <p-button
+      label="Guardar"
+      icon="pi pi-check"
+      (onClick)="savePermissions()"
+    />
+  </ng-template>
+</p-dialog>

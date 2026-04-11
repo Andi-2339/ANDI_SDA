@@ -1,0 +1,547 @@
+<p-toast />
+<p-confirmdialog />
+
+<div class="tickets-container">
+  <div class="tickets-header">
+    @if (groupId() !== null) {
+      <p-button
+        icon="pi pi-arrow-left"
+        severity="secondary"
+        [text]="true"
+        [rounded]="true"
+        pTooltip="Volver a Grupos"
+        tooltipPosition="right"
+        (onClick)="goBack()"
+      />
+    }
+    <h1 class="tickets-title">
+      @if (groupName()) {
+        Tickets - {{ groupName() }}
+      } @else {
+        Tickets
+      }
+    </h1>
+  </div>
+
+  <!-- Toolbar -->
+  <p-toolbar styleClass="tickets-toolbar">
+    <ng-template #start>
+      <div class="toolbar-start">
+        <ng-container *appHasPermission="['tickets', 'add']">
+          <p-button
+            label="Nuevo Ticket"
+            icon="pi pi-plus"
+            severity="primary"
+            (onClick)="openNew()"
+          />
+        </ng-container>
+        <div class="view-toggle">
+          <p-button
+            [icon]="'pi pi-list'"
+            [severity]="!kanbanView() ? 'primary' : 'secondary'"
+            [text]="kanbanView()"
+            [rounded]="true"
+            pTooltip="Vista de lista"
+            tooltipPosition="top"
+            (onClick)="kanbanView.set(false)"
+          />
+          <p-button
+            [icon]="'pi pi-th-large'"
+            [severity]="kanbanView() ? 'primary' : 'secondary'"
+            [text]="!kanbanView()"
+            [rounded]="true"
+            pTooltip="Vista Kanban"
+            tooltipPosition="top"
+            (onClick)="kanbanView.set(true)"
+          />
+        </div>
+      </div>
+    </ng-template>
+    <ng-template #end>
+      <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+          pInputText
+          [ngModel]="searchValue()"
+          (ngModelChange)="searchValue.set($event)"
+          placeholder="Buscar tickets..."
+        />
+      </p-iconfield>
+    </ng-template>
+  </p-toolbar>
+
+  <!-- Filters -->
+  <div class="filters-panel">
+    <div class="filters-grid">
+      <div class="filter-field">
+        <label>Estado</label>
+        <p-select
+          [options]="estadoFilterOptions"
+          [ngModel]="filterEstado()"
+          (ngModelChange)="filterEstado.set($event)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Todos los estados"
+          styleClass="w-full"
+        />
+      </div>
+      <div class="filter-field">
+        <label>Prioridad</label>
+        <p-select
+          [options]="prioridadFilterOptions"
+          [ngModel]="filterPrioridad()"
+          (ngModelChange)="filterPrioridad.set($event)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Todas las prioridades"
+          styleClass="w-full"
+        />
+      </div>
+      <div class="filter-field">
+        <label>Asignado a</label>
+        <p-select
+          [options]="userFilterOptions()"
+          [ngModel]="filterAsignadoA()"
+          (ngModelChange)="filterAsignadoA.set($event)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Todos los usuarios"
+          styleClass="w-full"
+        />
+      </div>
+      <div class="filter-field filter-actions">
+        <label>&nbsp;</label>
+        <p-button
+          label="Limpiar"
+          icon="pi pi-filter-slash"
+          severity="secondary"
+          [text]="true"
+          size="small"
+          (onClick)="clearFilters()"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- LIST VIEW -->
+  @if (!kanbanView()) {
+    <p-table
+      [value]="filteredTickets()"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[5, 10, 25]"
+      [tableStyle]="{ 'min-width': '80rem' }"
+      [rowHover]="true"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} tickets"
+      dataKey="id"
+      styleClass="p-datatable-striped"
+    >
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="id" style="min-width: 5rem">
+            ID <p-sortIcon field="id" />
+          </th>
+          <th pSortableColumn="titulo" style="min-width: 14rem">
+            Titulo <p-sortIcon field="titulo" />
+          </th>
+          <th pSortableColumn="estado" style="min-width: 8rem">
+            Estado <p-sortIcon field="estado" />
+          </th>
+          <th pSortableColumn="asignadoA" style="min-width: 10rem">
+            Asignado a <p-sortIcon field="asignadoA" />
+          </th>
+          <th pSortableColumn="prioridad" style="min-width: 8rem">
+            Prioridad <p-sortIcon field="prioridad" />
+          </th>
+          <th pSortableColumn="fechaCreacion" style="min-width: 9rem">
+            Creacion <p-sortIcon field="fechaCreacion" />
+          </th>
+          <th pSortableColumn="fechaLimite" style="min-width: 9rem">
+            Limite <p-sortIcon field="fechaLimite" />
+          </th>
+          <th style="min-width: 10rem; text-align: center">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-ticket>
+        <tr>
+          <td>{{ ticket.id }}</td>
+          <td>
+            <span class="ticket-title-cell">{{ ticket.titulo }}</span>
+          </td>
+          <td>
+            <p-tag
+              [value]="ticket.estado"
+              [severity]="getEstadoSeverity(ticket.estado)"
+            />
+          </td>
+          <td>{{ ticket.asignadoA }}</td>
+          <td>
+            <p-tag
+              [value]="ticket.prioridad"
+              [severity]="getPrioridadSeverity(ticket.prioridad)"
+            />
+          </td>
+          <td>{{ ticket.fechaCreacion }}</td>
+          <td>{{ ticket.fechaLimite }}</td>
+          <td class="actions-cell">
+            <p-button
+              icon="pi pi-eye"
+              [rounded]="true"
+              severity="info"
+              [text]="true"
+              pTooltip="Ver detalle"
+              tooltipPosition="top"
+              (onClick)="viewTicketDetail(ticket)"
+            />
+            <ng-container *appHasPermission="['tickets', 'edit']">
+              <p-button
+                icon="pi pi-pencil"
+                [rounded]="true"
+                severity="warn"
+                [text]="true"
+                pTooltip="Editar"
+                tooltipPosition="top"
+                (onClick)="editTicket(ticket)"
+              />
+            </ng-container>
+            <ng-container *appHasPermission="['tickets', 'delete']">
+              <p-button
+                icon="pi pi-trash"
+                [rounded]="true"
+                severity="danger"
+                [text]="true"
+                pTooltip="Eliminar"
+                tooltipPosition="top"
+                (onClick)="confirmDelete(ticket)"
+              />
+            </ng-container>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="8" class="empty-message">
+            <i class="pi pi-inbox empty-icon"></i>
+            <span>No se encontraron tickets</span>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+
+  <!-- KANBAN VIEW -->
+  @if (kanbanView()) {
+    <div class="kanban-board">
+      @for (column of kanbanColumns(); track column.status) {
+        <div
+          class="kanban-column"
+          [ngClass]="{
+            'kanban-column-drag-over': dragOverColumn() === column.status
+          }"
+          (dragover)="onDragOver($event, column.status)"
+          (dragleave)="onDragLeave($event, column.status)"
+          (drop)="onDrop($event, column.status)"
+        >
+          <div class="kanban-column-header" [ngClass]="'kanban-header-' + column.status.replace(' ', '-')">
+            <span class="kanban-column-title">{{ column.label }}</span>
+            <span class="kanban-column-count">{{ column.tickets.length }}</span>
+          </div>
+          <div class="kanban-column-body">
+            @if (column.tickets.length === 0) {
+              <div class="kanban-empty">
+                @if (draggedTicket() && draggedTicket()!.estado !== column.status) {
+                  <i class="pi pi-arrow-down"></i>
+                  <span>Soltar aqui</span>
+                } @else {
+                  <i class="pi pi-inbox"></i>
+                  <span>Sin tickets</span>
+                }
+              </div>
+            }
+            @for (ticket of column.tickets; track ticket.id) {
+              <div
+                class="kanban-card"
+                [ngClass]="{
+                  'kanban-card-dragging': draggedTicket()?.id === ticket.id
+                }"
+                [attr.draggable]="canEdit()"
+                (dragstart)="onDragStart($event, ticket)"
+                (dragend)="onDragEnd()"
+                (click)="viewTicketDetail(ticket)"
+              >
+                <div class="kanban-card-title">{{ ticket.titulo }}</div>
+                <div class="kanban-card-meta">
+                  <div class="kanban-card-row">
+                    <p-tag
+                      [value]="ticket.estado"
+                      [severity]="getEstadoSeverity(ticket.estado)"
+                      styleClass="kanban-tag"
+                    />
+                    <p-tag
+                      [value]="ticket.prioridad"
+                      [severity]="getPrioridadSeverity(ticket.prioridad)"
+                      styleClass="kanban-tag"
+                    />
+                  </div>
+                  <div class="kanban-card-info">
+                    <span><i class="pi pi-user"></i> {{ ticket.asignadoA }}</span>
+                  </div>
+                  <div class="kanban-card-info">
+                    <span><i class="pi pi-calendar"></i> {{ ticket.fechaCreacion }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Create / Edit Dialog -->
+<p-dialog
+  [header]="dialogTitle()"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [style]="{ width: '50rem' }"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="hideDialog()"
+  styleClass="tickets-dialog"
+>
+  <div class="dialog-content">
+    <div class="form-grid">
+      <!-- Titulo -->
+      <div class="field field-full">
+        <label for="titulo">Titulo <span class="required">*</span></label>
+        <input
+          pInputText
+          id="titulo"
+          [ngModel]="editTitulo()"
+          (ngModelChange)="editTitulo.set($event)"
+          placeholder="Titulo del ticket"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted() && !editTitulo().trim() }"
+        />
+        @if (submitted() && !editTitulo().trim()) {
+          <small class="field-error">El titulo es requerido.</small>
+        }
+      </div>
+
+      <!-- Descripcion -->
+      <div class="field field-full">
+        <label for="descripcion">Descripcion <span class="required">*</span></label>
+        <textarea
+          pTextarea
+          id="descripcion"
+          [ngModel]="editDescripcion()"
+          (ngModelChange)="editDescripcion.set($event)"
+          placeholder="Descripcion del ticket"
+          [rows]="3"
+          [autoResize]="true"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted() && !editDescripcion().trim() }"
+        ></textarea>
+        @if (submitted() && !editDescripcion().trim()) {
+          <small class="field-error">La descripcion es requerida.</small>
+        }
+      </div>
+
+      <!-- Estado -->
+      <div class="field">
+        <label for="estado">Estado</label>
+        <p-select
+          id="estado"
+          [options]="estadoOptions"
+          [ngModel]="editEstado()"
+          (ngModelChange)="editEstado.set($event)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccionar estado"
+          styleClass="w-full"
+        />
+      </div>
+
+      <!-- Prioridad -->
+      <div class="field">
+        <label for="prioridad">Prioridad</label>
+        <p-select
+          id="prioridad"
+          [options]="prioridadOptions"
+          [ngModel]="editPrioridad()"
+          (ngModelChange)="editPrioridad.set($event)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccionar prioridad"
+          styleClass="w-full"
+        />
+      </div>
+
+      <!-- Asignado a -->
+      <div class="field">
+        <label for="asignadoA">Asignado a <span class="required">*</span></label>
+        <p-select
+          id="asignadoA"
+          [options]="userOptions()"
+          [ngModel]="editAsignadoA()"
+          (ngModelChange)="editAsignadoA.set($event)"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccionar usuario"
+          [filter]="true"
+          filterPlaceholder="Buscar usuario..."
+          styleClass="w-full"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted() && !editAsignadoA().trim() }"
+        />
+        @if (submitted() && !editAsignadoA().trim()) {
+          <small class="field-error">Debe asignar a un usuario.</small>
+        }
+      </div>
+
+      <!-- Fecha Creacion -->
+      <div class="field">
+        <label for="fechaCreacion">Fecha de creacion</label>
+        <p-datepicker
+          id="fechaCreacion"
+          [ngModel]="editFechaCreacion()"
+          (ngModelChange)="editFechaCreacion.set($event)"
+          dateFormat="yy-mm-dd"
+          [showIcon]="true"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+        />
+      </div>
+
+      <!-- Fecha Limite -->
+      <div class="field">
+        <label for="fechaLimite">Fecha limite <span class="required">*</span></label>
+        <p-datepicker
+          id="fechaLimite"
+          [ngModel]="editFechaLimite()"
+          (ngModelChange)="editFechaLimite.set($event)"
+          dateFormat="yy-mm-dd"
+          [showIcon]="true"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted() && editFechaLimite() === null }"
+        />
+        @if (submitted() && editFechaLimite() === null) {
+          <small class="field-error">La fecha limite es requerida.</small>
+        }
+      </div>
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <p-button
+      label="Cancelar"
+      icon="pi pi-times"
+      severity="secondary"
+      [text]="true"
+      (onClick)="hideDialog()"
+    />
+    <p-button
+      label="Guardar"
+      icon="pi pi-check"
+      (onClick)="saveTicket()"
+    />
+  </ng-template>
+</p-dialog>
+
+<!-- Detail Dialog -->
+<p-dialog
+  header="Detalle del Ticket"
+  [(visible)]="detailDialogVisible"
+  [modal]="true"
+  [style]="{ width: '55rem' }"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="ticket-detail-dialog"
+>
+  @if (selectedTicket(); as ticket) {
+    <div class="detail-content">
+      <div class="detail-header-info">
+        <h2>{{ ticket.titulo }}</h2>
+        <div class="detail-tags">
+          <p-tag [value]="ticket.estado" [severity]="getEstadoSeverity(ticket.estado)" />
+          <p-tag [value]="ticket.prioridad" [severity]="getPrioridadSeverity(ticket.prioridad)" />
+        </div>
+      </div>
+
+      <div class="detail-meta">
+        <div class="meta-item">
+          <i class="pi pi-user"></i>
+          <span><strong>Asignado a:</strong> {{ ticket.asignadoA }}</span>
+        </div>
+        <div class="meta-item">
+          <i class="pi pi-calendar"></i>
+          <span><strong>Creacion:</strong> {{ ticket.fechaCreacion }}</span>
+        </div>
+        <div class="meta-item">
+          <i class="pi pi-calendar-times"></i>
+          <span><strong>Limite:</strong> {{ ticket.fechaLimite }}</span>
+        </div>
+      </div>
+
+      <div class="detail-description">
+        <h3>Descripcion</h3>
+        <p>{{ ticket.descripcion }}</p>
+      </div>
+
+      <!-- Comentarios -->
+      <div class="detail-section">
+        <h3>Comentarios ({{ ticket.comentarios.length }})</h3>
+        @if (ticket.comentarios.length === 0) {
+          <p class="no-data">No hay comentarios aun.</p>
+        } @else {
+          <div class="comments-list">
+            @for (comment of ticket.comentarios; track comment.id) {
+              <div class="comment-item">
+                <div class="comment-header">
+                  <strong>{{ comment.autor }}</strong>
+                  <span class="comment-date">{{ comment.fecha }}</span>
+                </div>
+                <p class="comment-text">{{ comment.texto }}</p>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Add comment -->
+        <div class="add-comment">
+          <textarea
+            pTextarea
+            [ngModel]="editComentarioNuevo()"
+            (ngModelChange)="editComentarioNuevo.set($event)"
+            placeholder="Agregar un comentario..."
+            [rows]="2"
+            [autoResize]="true"
+          ></textarea>
+          <p-button
+            label="Agregar comentario"
+            icon="pi pi-send"
+            size="small"
+            [disabled]="!editComentarioNuevo().trim()"
+            (onClick)="addComment()"
+          />
+        </div>
+      </div>
+
+      <!-- Historial de cambios (readonly textarea) -->
+      <div class="detail-section">
+        <h3>Historial de cambios</h3>
+        <textarea
+          pTextarea
+          [value]="changeHistoryText()"
+          [readonly]="true"
+          [rows]="6"
+          [autoResize]="true"
+          class="history-textarea"
+          placeholder="Sin cambios registrados"
+        ></textarea>
+      </div>
+    </div>
+  }
+</p-dialog>

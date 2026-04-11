@@ -1,0 +1,70 @@
+<aside class="sidebar" [class.collapsed]="collapsed()">
+  <div class="sidebar-header">
+    @if (!collapsed()) {
+      <div style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;" routerLink="/dashboard">
+        <img src="logo.png" alt="Logo" style="height: 32px; border-radius: 50%;">
+        <span class="sidebar-logo">ANDI SDA</span>
+      </div>
+    }
+    <button
+      class="toggle-btn"
+      (click)="toggleSidebar()"
+      pRipple
+      [attr.aria-label]="collapsed() ? 'Expandir menu' : 'Contraer menu'"
+    >
+      <i [class]="collapsed() ? 'pi pi-angle-right' : 'pi pi-angle-left'"></i>
+    </button>
+  </div>
+
+  @if (!collapsed() && currentUser()) {
+    <div class="user-info">
+      <div class="user-avatar">
+        <i class="pi pi-user"></i>
+      </div>
+      <div class="user-details">
+        <span class="user-name">{{ currentUser()!.fullName }}</span>
+      </div>
+    </div>
+  }
+
+  <nav class="sidebar-nav">
+    <ul class="menu-list">
+      @for (item of menuItems(); track item.label) {
+        <li>
+          <a
+            class="menu-item"
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            pRipple
+            [pTooltip]="collapsed() ? item.label : ''"
+            tooltipPosition="right"
+          >
+            <i [class]="item.icon + ' menu-icon'"></i>
+            @if (!collapsed()) {
+              <span class="menu-label">{{ item.label }}</span>
+            }
+          </a>
+        </li>
+      }
+    </ul>
+  </nav>
+
+  <div class="sidebar-footer">
+    @if (!collapsed()) {
+      <span class="version-label">{{ appVersion }}</span>
+    }
+    <a
+      class="menu-item logout-item"
+      routerLink="/home/landing"
+      (click)="logout()"
+      pRipple
+      [pTooltip]="collapsed() ? 'Cerrar sesion' : ''"
+      tooltipPosition="right"
+    >
+      <i class="pi pi-sign-out menu-icon"></i>
+      @if (!collapsed()) {
+        <span class="menu-label">Cerrar sesion</span>
+      }
+    </a>
+  </div>
+</aside>

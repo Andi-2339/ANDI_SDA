@@ -1,0 +1,261 @@
+<p-toast />
+<p-confirmdialog />
+
+<div class="groups-container">
+  <h1 class="groups-title">Grupos</h1>
+
+  <!-- Toolbar -->
+  <p-toolbar styleClass="groups-toolbar">
+    <ng-template #start>
+      <p-button
+        *appHasPermission="['groups', 'add']"
+        label="Nuevo Grupo"
+        icon="pi pi-plus"
+        severity="primary"
+        (onClick)="openNew()"
+      />
+    </ng-template>
+    <ng-template #end>
+      <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+          pInputText
+          [ngModel]="searchValue()"
+          (ngModelChange)="searchValue.set($event)"
+          placeholder="Buscar grupos..."
+        />
+      </p-iconfield>
+    </ng-template>
+  </p-toolbar>
+
+  <!-- DataTable -->
+  <p-table
+    [value]="filteredGroups()"
+    [paginator]="true"
+    [rows]="5"
+    [rowsPerPageOptions]="[5, 10, 25]"
+    [tableStyle]="{ 'min-width': '70rem' }"
+    [rowHover]="true"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} grupos"
+    [globalFilterFields]="['nombre', 'autor', 'nivel', 'descripcion']"
+    dataKey="id"
+    styleClass="p-datatable-striped"
+  >
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="nivel" style="min-width: 8rem">
+          Nivel <p-sortIcon field="nivel" />
+        </th>
+        <th pSortableColumn="autor" style="min-width: 10rem">
+          Autor <p-sortIcon field="autor" />
+        </th>
+        <th pSortableColumn="nombre" style="min-width: 12rem">
+          Nombre <p-sortIcon field="nombre" />
+        </th>
+        <th pSortableColumn="integrantes" style="min-width: 8rem">
+          Integrantes <p-sortIcon field="integrantes" />
+        </th>
+        <th pSortableColumn="tickets" style="min-width: 8rem">
+          Tickets <p-sortIcon field="tickets" />
+        </th>
+        <th style="min-width: 16rem">Descripcion</th>
+        <th style="min-width: 10rem; text-align: center">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-group>
+      <tr>
+        <td>
+          <p-tag
+            [value]="group.nivel"
+            [severity]="getNivelSeverity(group.nivel)"
+          />
+        </td>
+        <td>{{ group.autor }}</td>
+        <td>
+          <span class="group-name">{{ group.nombre }}</span>
+        </td>
+        <td>
+          <span class="badge-count badge-clickable" (click)="goToUsers(group)" pTooltip="Ver integrantes" tooltipPosition="top">
+            <i class="pi pi-users"></i>
+            {{ group.integrantes }}
+          </span>
+        </td>
+        <td>
+          <span class="badge-count badge-clickable" (click)="goToTicketDashboard(group)" pTooltip="Ver dashboard de tickets" tooltipPosition="top">
+            <i class="pi pi-ticket"></i>
+            {{ group.tickets }}
+          </span>
+        </td>
+        <td>
+          <span class="description-cell">{{ group.descripcion }}</span>
+        </td>
+        <td class="actions-cell">
+          <p-button
+            *appHasPermission="['groups', 'edit']"
+            icon="pi pi-pencil"
+            [rounded]="true"
+            severity="info"
+            [text]="true"
+            pTooltip="Editar"
+            tooltipPosition="top"
+            (onClick)="editGroup(group)"
+          />
+          <p-button
+            *appHasPermission="['groups', 'delete']"
+            icon="pi pi-trash"
+            [rounded]="true"
+            severity="danger"
+            [text]="true"
+            pTooltip="Eliminar"
+            tooltipPosition="top"
+            (onClick)="confirmDelete(group)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="7" class="empty-message">
+          <i class="pi pi-inbox empty-icon"></i>
+          <span>No se encontraron grupos</span>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Create / Edit Dialog -->
+<p-dialog
+  [header]="dialogTitle()"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [style]="{ width: '40rem' }"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="hideDialog()"
+  styleClass="groups-dialog"
+>
+  <div class="dialog-content">
+    <div class="form-grid">
+      <!-- Nombre -->
+      <div class="field">
+        <label for="nombre">Nombre <span class="required">*</span></label>
+        <input
+          pInputText
+          id="nombre"
+          [ngModel]="editNombre()"
+          (ngModelChange)="editNombre.set($event)"
+          placeholder="Nombre del grupo"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted() && !editNombre().trim() }"
+        />
+        @if (submitted() && !editNombre().trim()) {
+          <small class="field-error">El nombre es requerido.</small>
+        }
+      </div>
+
+      <!-- Autor -->
+      <div class="field">
+        <label for="autor">Autor <span class="required">*</span></label>
+        <input
+          pInputText
+          id="autor"
+          [ngModel]="editAutor()"
+          (ngModelChange)="editAutor.set($event)"
+          placeholder="Autor del grupo"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted() && !editAutor().trim() }"
+        />
+        @if (submitted() && !editAutor().trim()) {
+          <small class="field-error">El autor es requerido.</small>
+        }
+      </div>
+
+      <!-- Nivel -->
+      <div class="field">
+        <label for="nivel">Nivel <span class="required">*</span></label>
+        <input
+          pInputText
+          id="nivel"
+          [ngModel]="editNivel()"
+          (ngModelChange)="editNivel.set($event)"
+          placeholder="Alto, Medio o Bajo"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted() && !editNivel().trim() }"
+        />
+        @if (submitted() && !editNivel().trim()) {
+          <small class="field-error">El nivel es requerido.</small>
+        }
+      </div>
+
+      <!-- Integrantes -->
+      <div class="field">
+        <label for="integrantes">Integrantes <span class="required">*</span></label>
+        <p-inputnumber
+          id="integrantes"
+          [ngModel]="editIntegrantes()"
+          (ngModelChange)="editIntegrantes.set($event)"
+          [min]="0"
+          placeholder="Cantidad de integrantes"
+          inputStyleClass="w-full"
+          styleClass="w-full"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted() && editIntegrantes() === null }"
+        />
+        @if (submitted() && editIntegrantes() === null) {
+          <small class="field-error">Los integrantes son requeridos.</small>
+        }
+      </div>
+
+      <!-- Tickets -->
+      <div class="field">
+        <label for="tickets">Tickets <span class="required">*</span></label>
+        <p-inputnumber
+          id="tickets"
+          [ngModel]="editTickets()"
+          (ngModelChange)="editTickets.set($event)"
+          [min]="0"
+          placeholder="Cantidad de tickets"
+          inputStyleClass="w-full"
+          styleClass="w-full"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted() && editTickets() === null }"
+        />
+        @if (submitted() && editTickets() === null) {
+          <small class="field-error">Los tickets son requeridos.</small>
+        }
+      </div>
+
+      <!-- Descripcion -->
+      <div class="field field-full">
+        <label for="descripcion">Descripcion <span class="required">*</span></label>
+        <textarea
+          pTextarea
+          id="descripcion"
+          [ngModel]="editDescripcion()"
+          (ngModelChange)="editDescripcion.set($event)"
+          placeholder="Descripcion del grupo"
+          [rows]="3"
+          [autoResize]="true"
+          [ngClass]="{ 'ng-invalid ng-dirty': submitted() && !editDescripcion().trim() }"
+        ></textarea>
+        @if (submitted() && !editDescripcion().trim()) {
+          <small class="field-error">La descripcion es requerida.</small>
+        }
+      </div>
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <p-button
+      label="Cancelar"
+      icon="pi pi-times"
+      severity="secondary"
+      [text]="true"
+      (onClick)="hideDialog()"
+    />
+    <p-button
+      label="Guardar"
+      icon="pi pi-check"
+      (onClick)="saveGroup()"
+    />
+  </ng-template>
+</p-dialog>

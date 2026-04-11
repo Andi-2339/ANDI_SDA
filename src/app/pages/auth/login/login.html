@@ -1,0 +1,96 @@
+<div class="login-container">
+  <p-toast />
+  
+  <div class="login-card">
+    <div class="login-header">
+      <a routerLink="/home/landing" class="back-link">
+        <i class="pi pi-arrow-left"></i>
+      </a>
+      <div class="login-brand">
+        <img src="logo.png" alt="Logo" style="height: 40px; border-radius: 50%;">
+        <h1>ANDI SDA</h1>
+      </div>
+      <p class="login-subtitle">Inicia sesion en tu cuenta</p>
+    </div>
+
+    <form (ngSubmit)="onLogin()" class="login-form">
+      @if (errorMessage()) {
+        <p-message severity="error" [text]="errorMessage()" styleClass="w-full mb-3" />
+      }
+
+      <div class="field">
+        <label for="email">Correo electronico</label>
+        <input
+          id="email"
+          type="email"
+          pInputText
+          placeholder="correo@ejemplo.com"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)"
+          name="email"
+          class="w-full"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label for="password">Contrasena</label>
+        <p-password
+          id="password"
+          [ngModel]="password()"
+          (ngModelChange)="password.set($event)"
+          name="password"
+          placeholder="Ingresa tu contrasena"
+          [toggleMask]="true"
+          [feedback]="false"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+          required
+        />
+      </div>
+
+      <div class="field-row">
+        <div class="checkbox-wrapper">
+          <p-checkbox
+            [ngModel]="rememberMe()"
+            (ngModelChange)="rememberMe.set($event)"
+            name="rememberMe"
+            [binary]="true"
+            inputId="rememberMe"
+          />
+          <label for="rememberMe" class="checkbox-label">Recordarme</label>
+        </div>
+        <a class="forgot-link" href="#">Olvidaste tu contrasena?</a>
+      </div>
+
+      <p-button
+        type="submit"
+        label="Iniciar Sesion"
+        icon="pi pi-sign-in"
+        styleClass="w-full"
+      />
+
+      <div class="credentials-hint">
+        <small>
+          <i class="pi pi-info-circle"></i>
+          {{ credentialsHint }}
+        </small>
+      </div>
+    </form>
+
+    <p-divider align="center">
+      <span class="divider-text">o</span>
+    </p-divider>
+
+    <div class="login-footer">
+      <p>No tienes cuenta?
+        <a routerLink="/auth/register" class="register-link">Registrate aqui</a>
+      </p>
+      <p class="home-link-wrapper">
+        <a routerLink="/home/landing" class="home-link">
+          <i class="pi pi-home"></i> Volver al inicio
+        </a>
+      </p>
+    </div>
+  </div>
+</div>
