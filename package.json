@@ -1,0 +1,14 @@
+{
+  "name": "andi-sda-root",
+  "version": "1.0.0",
+  "description": "Root delegator for ANDI_SDA project",
+  "scripts": {
+    "start:all": "npm run --prefix ANDI_SDA start:all",
+    "start": "npm run --prefix ANDI_SDA start",
+    "build": "npm run --prefix ANDI_SDA build",
+    "install:all": "npm install --prefix ANDI_SDA && npm install --prefix ANDI_SDA/backend/api-gateway && npm install --prefix ANDI_SDA/backend/users-service && npm install --prefix ANDI_SDA/backend/groups-service && npm install --prefix ANDI_SDA/backend/tickets-service"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
