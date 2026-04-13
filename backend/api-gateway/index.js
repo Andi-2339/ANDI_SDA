@@ -165,6 +165,32 @@ fastify.register(require('@fastify/http-proxy'), {
   rewritePrefix: ''
 });
 
+// Estandarización de Respuesta Universal
+fastify.addHook('onSend', async (request, reply, payload) => {
+  const contentType = reply.getHeader('content-type');
+  if (reply.statusCode === 204 || (contentType && !contentType.includes('application/json'))) {
+    return payload;
+  }
+
+  try {
+    const json = JSON.parse(payload);
+    // Evitar doble envoltura si viene del microservicio
+    if (json && typeof json === 'object' && json.statusCode && json.intOpCode) {
+      return payload;
+    }
+
+    const wrapped = {
+      statusCode: reply.statusCode,
+      intOpCode: `SxGW${reply.statusCode}`, // Sx + GW (Gateway) + Code
+      data: json
+    };
+    
+    return JSON.stringify(wrapped);
+  } catch (err) {
+    return payload;
+  }
+});
+
 const start = async () => {
   try {
     const port = process.env.PORT || 3000;

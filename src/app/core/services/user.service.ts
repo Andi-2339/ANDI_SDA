@@ -1,9 +1,9 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { User } from '../models/user';
-import { RolePermissions } from '../models/permission';
+import { RolePermissions, ApiResponse } from '../models/permission';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, map } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -14,7 +14,8 @@ export class UserService {
 
   // Load all users from backend
   loadUsers(): Observable<User[]> {
-    return this.http.get<User[]>(this.apiUrl).pipe(
+    return this.http.get<ApiResponse<User[]>>(this.apiUrl).pipe(
+      map(res => res.data),
       tap(data => this.users.set(data))
     );
   }
@@ -32,11 +33,14 @@ export class UserService {
   }
 
   getUserById(id: number): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/${id}`);
+    return this.http.get<ApiResponse<User>>(`${this.apiUrl}/${id}`).pipe(
+      map(res => res.data)
+    );
   }
 
   addUser(user: Omit<User, 'id'>): Observable<User> {
-    return this.http.post<User>(this.apiUrl, user).pipe(
+    return this.http.post<ApiResponse<User>>(this.apiUrl, user).pipe(
+      map(res => res.data),
       tap(newUser => {
         this.users.update((list) => [...list, newUser]);
       })
@@ -44,7 +48,8 @@ export class UserService {
   }
 
   updateUser(id: number, changes: Partial<User>): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/${id}`, changes).pipe(
+    return this.http.put<ApiResponse<User>>(`${this.apiUrl}/${id}`, changes).pipe(
+      map(res => res.data),
       tap(updatedUser => {
         this.users.update((list) =>
           list.map((u) => (u.id === id ? { ...u, ...updatedUser } : u))

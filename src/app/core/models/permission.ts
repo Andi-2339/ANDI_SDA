@@ -31,3 +31,9 @@ export interface AuthUser {
   memberships: UserMembership[];
   activeGroupId?: number;
 }
+
+export interface ApiResponse<T> {
+  statusCode: number;
+  intOpCode: string;
+  data: T;
+}

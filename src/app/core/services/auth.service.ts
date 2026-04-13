@@ -2,7 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { AuthUser, RolePermissions, PermissionModule, PermissionAction } from '../models/permission';
+import { AuthUser, RolePermissions, PermissionModule, PermissionAction, ApiResponse } from '../models/permission';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -33,8 +33,9 @@ export class AuthService {
   }
 
   login(username: string, password: string): Observable<AuthUser | null> {
-    return this.http.post<any>(this.apiUrl, { username, password }).pipe(
-      map(response => {
+    return this.http.post<ApiResponse<any>>(this.apiUrl, { username, password }).pipe(
+      map(res => {
+        const response = res.data;
         if (!response || !response.token) return null;
         
         // Save token

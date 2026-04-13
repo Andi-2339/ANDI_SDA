@@ -1,8 +1,9 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Ticket } from '../models/ticket';
+import { ApiResponse } from '../models/permission';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, map } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {
@@ -13,24 +14,29 @@ export class TicketService {
 
   // Load all tickets
   loadTickets(): Observable<Ticket[]> {
-    return this.http.get<Ticket[]>(this.apiUrl).pipe(
+    return this.http.get<ApiResponse<Ticket[]>>(this.apiUrl).pipe(
+      map(res => res.data),
       tap(data => this.tickets.set(data))
     );
   }
 
   // Group tickets
   getTicketsByGroup(groupId: number): Observable<Ticket[]> {
-    return this.http.get<Ticket[]>(`${this.apiUrl}/group/${groupId}`).pipe(
+    return this.http.get<ApiResponse<Ticket[]>>(`${this.apiUrl}/group/${groupId}`).pipe(
+      map(res => res.data),
       tap(data => this.tickets.set(data))
     );
   }
 
   getTicketById(id: number): Observable<Ticket> {
-    return this.http.get<Ticket>(`${this.apiUrl}/${id}`);
+    return this.http.get<ApiResponse<Ticket>>(`${this.apiUrl}/${id}`).pipe(
+      map(res => res.data)
+    );
   }
 
   addTicket(ticket: Omit<Ticket, 'id' | 'createdAt'>): Observable<Ticket> {
-    return this.http.post<Ticket>(this.apiUrl, ticket).pipe(
+    return this.http.post<ApiResponse<Ticket>>(this.apiUrl, ticket).pipe(
+      map(res => res.data),
       tap(newTicket => {
         this.tickets.update((list) => [...list, newTicket]);
       })
@@ -38,7 +44,8 @@ export class TicketService {
   }
 
   updateTicket(id: number, changes: Partial<Ticket>): Observable<Ticket> {
-    return this.http.put<Ticket>(`${this.apiUrl}/${id}`, changes).pipe(
+    return this.http.put<ApiResponse<Ticket>>(`${this.apiUrl}/${id}`, changes).pipe(
+      map(res => res.data),
       tap(updatedTicket => {
         this.tickets.update((list) =>
           list.map((t) => (t.id === id ? { ...t, ...updatedTicket } : t))
@@ -56,6 +63,13 @@ export class TicketService {
   }
 
   updateTicketStatus(id: number, newStatus: Ticket['estado']): Observable<Ticket> {
-    return this.updateTicket(id, { estado: newStatus });
+    return this.http.patch<ApiResponse<Ticket>>(`${this.apiUrl}/${id}/status`, { estado: newStatus }).pipe(
+      map(res => res.data),
+      tap(updatedTicket => {
+        this.tickets.update((list) =>
+          list.map((t) => (t.id === id ? { ...t, ...updatedTicket } : t))
+        );
+      })
+    );
   }
 }
