@@ -17,9 +17,13 @@ export interface RolePermissions {
 }
 
 export interface UserMembership {
+  id?: number;
   group_id: number;
   permissions: RolePermissions;
   active: boolean;
+  groups?: {
+    nombre: string;
+  };
 }
 
 export interface AuthUser {

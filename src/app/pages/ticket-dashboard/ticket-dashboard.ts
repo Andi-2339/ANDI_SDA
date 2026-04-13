@@ -12,10 +12,13 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip';
 import { CardModule } from 'primeng/card';
+import { ChartModule } from 'primeng/chart';
 import { TicketService } from '../../core/services/ticket.service';
 import { UserService } from '../../core/services/user.service';
+import { GroupService } from '../../core/services/group.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Ticket, TicketStatus, TicketPriority } from '../../core/models/ticket';
+import { Group } from '../../core/models/group';
 @Component({
   selector: 'app-ticket-dashboard',
   imports: [
@@ -31,6 +34,7 @@ import { Ticket, TicketStatus, TicketPriority } from '../../core/models/ticket';
     InputTextModule,
     TooltipModule,
     CardModule,
+    ChartModule,
   ],
   templateUrl: './ticket-dashboard.html',
   styleUrl: './ticket-dashboard.css',
@@ -38,6 +42,7 @@ import { Ticket, TicketStatus, TicketPriority } from '../../core/models/ticket';
 export class TicketDashboard implements OnInit {
   private ticketService = inject(TicketService);
   private userService = inject(UserService);
+  private groupService = inject(GroupService);
   private authService = inject(AuthService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -79,17 +84,19 @@ export class TicketDashboard implements OnInit {
   });
 
   groupOptions = computed(() => {
-    // We build group options from the ticket data
-    const groups = new Map<number, string>();
-    for (const t of this.ticketService.tickets()) {
-      if (!groups.has(t.groupId)) {
-        groups.set(t.groupId, `Grupo ${t.groupId}`);
-      }
-    }
-    const opts = [{ label: 'Todos', value: null as number | null }];
-    groups.forEach((label, value) => opts.push({ label, value }));
-    return opts;
+    return this.groupService.groups().map((g: Group) => ({
+      label: g.nombre,
+      value: g.id,
+    }));
   });
+
+  myWorkspaces = computed(() => {
+    const user = this.authService.currentUser();
+    return user?.memberships || [];
+  });
+
+  activeGlobalGroup = computed(() => this.authService.currentUser()?.activeGroupId);
+
 
   // All tickets
   private allTickets = this.ticketService.tickets;
@@ -104,10 +111,17 @@ export class TicketDashboard implements OnInit {
       list = list.filter((t) => t.asignadoA === user);
     }
 
-    // Filter by group (when not scoped to a group)
-    const group = this.filterGroup();
-    if (group !== null && this.groupId() === null) {
-      list = list.filter((t) => t.groupId === group);
+    // Filter by group logic
+    const activeGlobalGroup = this.authService.currentUser()?.activeGroupId;
+    const groupFilter = this.filterGroup();
+    const urlGroup = this.groupId();
+
+    if (urlGroup !== null) {
+      list = list.filter((t) => t.groupId === urlGroup);
+    } else if (groupFilter !== null) {
+      list = list.filter((t) => t.groupId === groupFilter);
+    } else if (activeGlobalGroup) {
+      list = list.filter((t) => t.groupId === activeGlobalGroup);
     }
 
     // Filter by status
@@ -168,13 +182,22 @@ export class TicketDashboard implements OnInit {
   finalizados = computed(() => this.filteredTickets().filter((t) => t.estado === 'finalizado').length);
   prioridadAlta = computed(() => this.filteredTickets().filter((t) => t.prioridad === 'alta').length);
 
+  // Chart Data
+  statusChartData: any;
+  statusChartOptions: any;
+  priorityChartData: any;
+  priorityChartOptions: any;
+  groupDistributionData: any;
+  groupDistributionOptions: any;
+
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
-      if (params['groupId']) {
-        this.groupId.set(+params['groupId']);
-        this.ticketService.getTicketsByGroup(+params['groupId']).subscribe();
+      const id = params['groupId'] ? +params['groupId'] : null;
+      if (id) {
+        this.groupId.set(id);
+        this.ticketService.getTicketsByGroup(id).subscribe(() => this.initCharts());
       } else {
-        this.ticketService.loadTickets().subscribe();
+        this.ticketService.loadTickets().subscribe(() => this.initCharts());
       }
     });
     this.route.queryParams.subscribe((qp) => {
@@ -182,6 +205,95 @@ export class TicketDashboard implements OnInit {
         this.groupName.set(qp['groupName']);
       }
     });
+  }
+
+  initCharts(): void {
+    // Colores para el tema claro del Dashboard
+    const textColor = '#334155';
+    const textColorSecondary = '#64748b';
+    const surfaceBorder = '#e2e8f0';
+
+    // Status Chart (Bar)
+    this.statusChartData = {
+      labels: ['Pendiente', 'En progreso', 'En revisión', 'Finalizado'],
+      datasets: [
+        {
+          label: 'Tickets por Estado',
+          data: [this.pendientes(), this.enProgreso(), this.enRevision(), this.finalizados()],
+          backgroundColor: ['#f59e0b', '#3b82f6', '#94a3b8', '#22c55e'],
+          borderRadius: 8
+        }
+      ]
+    };
+
+    this.statusChartOptions = {
+      maintainAspectRatio: false,
+      aspectRatio: 0.8,
+      plugins: {
+        legend: { labels: { color: textColor, font: { weight: '600' } } }
+      },
+      scales: {
+        x: {
+          ticks: { color: textColorSecondary, font: { weight: '500' } },
+          grid: { color: surfaceBorder, drawBorder: false }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { color: textColorSecondary },
+          grid: { color: surfaceBorder, drawBorder: false }
+        }
+      }
+    };
+
+    // Priority Chart (Pie)
+    this.priorityChartData = {
+      labels: ['Alta', 'Media', 'Baja'],
+      datasets: [
+        {
+          data: [
+            this.filteredTickets().filter(t => t.prioridad === 'alta').length,
+            this.filteredTickets().filter(t => t.prioridad === 'media').length,
+            this.filteredTickets().filter(t => t.prioridad === 'baja').length
+          ],
+          backgroundColor: ['#ef4444', '#f59e0b', '#22c55e']
+        }
+      ]
+    };
+
+    this.priorityChartOptions = {
+      plugins: {
+        legend: { position: 'bottom', labels: { color: textColor, font: { weight: '600' } } }
+      }
+    };
+
+    // Group Distribution Chart (Doughnut)
+    const memberships = this.myWorkspaces();
+    const allTickets = this.ticketService.tickets();
+
+    const groupLabels = memberships.map(m => m.groups?.nombre || `Grupo ${m.group_id}`);
+    const groupData = memberships.map(m => allTickets.filter(t => t.groupId === m.group_id).length);
+
+    this.groupDistributionData = {
+      labels: groupLabels,
+      datasets: [
+        {
+          data: groupData,
+          backgroundColor: [
+            '#6366f1', '#8b5cf6', '#3b82f6', '#f59e0b', '#22c55e', '#ef4444'
+          ],
+          hoverBackgroundColor: [
+            '#4f46e5', '#7c3aed', '#2563eb', '#d97706', '#16a34a', '#dc2626'
+          ]
+        }
+      ]
+    };
+
+    this.groupDistributionOptions = {
+      cutout: '60%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: textColor, font: { weight: '600' } } }
+      }
+    };
   }
 
   clearFilters(): void {
@@ -198,6 +310,11 @@ export class TicketDashboard implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/groups']);
+  }
+
+  selectWorkspace(groupId: number): void {
+    this.authService.setActiveGroup(groupId);
+    // Charts will update automatically due to computed signals
   }
 
   goToTickets(groupId?: number): void {

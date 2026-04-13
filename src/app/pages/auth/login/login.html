@@ -7,7 +7,12 @@
         <i class="pi pi-arrow-left"></i>
       </a>
       <div class="login-brand">
-        <img src="logo.png" alt="Logo" style="height: 40px; border-radius: 50%;">
+        <img 
+          src="logo.png" 
+          alt="Logo" 
+          style="height: 40px; border-radius: 50%; cursor: pointer;"
+          (click)="onLogoClick()"
+        >
         <h1>ANDI SDA</h1>
       </div>
       <p class="login-subtitle">Inicia sesion en tu cuenta</p>

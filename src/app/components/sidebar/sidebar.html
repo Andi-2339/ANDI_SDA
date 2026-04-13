@@ -25,28 +25,50 @@
         <span class="user-name">{{ currentUser()!.fullName }}</span>
       </div>
     </div>
+
+    <!-- Workspace Selector -->
+    <div class="workspace-selector p-3">
+      <div class="flex flex-column gap-2">
+        <label class="text-xs font-bold text-surface-400 uppercase tracking-wider">Workspace</label>
+        <p-select 
+          [options]="groupOptions()" 
+          [(ngModel)]="activeGroupId" 
+          optionLabel="label" 
+          optionValue="value"
+          placeholder="Seleccionar Grupo"
+          styleClass="w-full sidebar-select"
+        />
+      </div>
+    </div>
   }
 
   <nav class="sidebar-nav">
-    <ul class="menu-list">
-      @for (item of menuItems(); track item.label) {
-        <li>
-          <a
-            class="menu-item"
-            [routerLink]="item.route"
-            routerLinkActive="active"
-            pRipple
-            [pTooltip]="collapsed() ? item.label : ''"
-            tooltipPosition="right"
-          >
-            <i [class]="item.icon + ' menu-icon'"></i>
-            @if (!collapsed()) {
-              <span class="menu-label">{{ item.label }}</span>
-            }
-          </a>
-        </li>
+    @for (cat of menuCategories; track cat) {
+      @if (getMenuItemsByCategory(cat).length > 0) {
+        @if (!collapsed()) {
+          <div class="menu-category-label">{{ cat }}</div>
+        }
+        <ul class="menu-list">
+          @for (item of getMenuItemsByCategory(cat); track item.label) {
+            <li>
+              <a
+                class="menu-item"
+                [routerLink]="item.route"
+                routerLinkActive="active"
+                pRipple
+                [pTooltip]="collapsed() ? item.label : ''"
+                tooltipPosition="right"
+              >
+                <i [class]="item.icon + ' menu-icon'"></i>
+                @if (!collapsed()) {
+                  <span class="menu-label">{{ item.label }}</span>
+                }
+              </a>
+            </li>
+          }
+        </ul>
       }
-    </ul>
+    }
   </nav>
 
   <div class="sidebar-footer">

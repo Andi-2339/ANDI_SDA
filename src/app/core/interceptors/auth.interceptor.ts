@@ -5,13 +5,18 @@ import { AuthService } from '../services/auth.service';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const token = authService.getToken();
+  const activeGroupId = authService.currentUser()?.activeGroupId;
+
+  let headers = req.headers;
 
   if (token) {
-    const clonedReq = req.clone({
-      headers: req.headers.set('Authorization', `Bearer ${token}`)
-    });
-    return next(clonedReq);
+    headers = headers.set('Authorization', `Bearer ${token}`);
   }
 
-  return next(req);
+  if (activeGroupId) {
+    headers = headers.set('x-group-id', activeGroupId.toString());
+  }
+
+  const clonedReq = req.clone({ headers });
+  return next(clonedReq);
 };

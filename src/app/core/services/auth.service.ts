@@ -1,5 +1,6 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { CookieService } from 'ngx-cookie-service';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { AuthUser, RolePermissions, PermissionModule, PermissionAction, ApiResponse } from '../models/permission';
@@ -7,6 +8,7 @@ import { AuthUser, RolePermissions, PermissionModule, PermissionAction, ApiRespo
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
+  private cookieService = inject(CookieService);
   // API Gateway URL for auth
   private apiUrl = 'http://localhost:3000/auth/login';
 
@@ -29,7 +31,7 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return this.cookieService.get('token') || null;
   }
 
   login(username: string, password: string): Observable<AuthUser | null> {
@@ -38,8 +40,8 @@ export class AuthService {
         const response = res.data;
         if (!response || !response.token) return null;
         
-        // Save token
-        localStorage.setItem('token', response.token);
+        // Save token in COOKIE (expires in 1 day)
+        this.cookieService.set('token', response.token, 1, '/');
 
         const authUser: AuthUser = {
           id: response.id,
@@ -73,7 +75,7 @@ export class AuthService {
 
   logout(): void {
     this.currentUser.set(null);
-    localStorage.removeItem('token');
+    this.cookieService.delete('token', '/');
     localStorage.removeItem('user');
   }
 

@@ -86,11 +86,20 @@
         <td class="actions-cell">
           @if (canManageRoles()) {
             <p-button
+              icon="pi pi-sitemap"
+              [rounded]="true"
+              severity="secondary"
+              [text]="true"
+              pTooltip="Gestionar Grupos"
+              tooltipPosition="top"
+              (onClick)="openMemberships(user)"
+            />
+            <p-button
               icon="pi pi-shield"
               [rounded]="true"
               severity="info"
               [text]="true"
-              pTooltip="Permisos"
+              pTooltip="Permisos Globales"
               tooltipPosition="top"
               (onClick)="openPermissions(user)"
             />
@@ -269,9 +278,61 @@
   </ng-template>
 </p-dialog>
 
+<!-- Memberships Dialog -->
+<p-dialog
+  header="Grupos y Membresías"
+  [(visible)]="membersDialogVisible"
+  [modal]="true"
+  [style]="{ width: '50rem' }"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="members-dialog"
+>
+  <div class="members-content">
+    <div class="members-user-info mb-4">
+      <i class="pi pi-user mr-2"></i>
+      <strong>{{ permissionsUserName() }}</strong>
+    </div>
+
+    <!-- Assign new group form -->
+    <div class="assign-form flex gap-2 mb-4 p-3 border-round bg-emphasis">
+      <p-select
+        [options]="groupOptions()"
+        [ngModel]="assignGroupId()"
+        (ngModelChange)="assignGroupId.set($event)"
+        placeholder="Seleccionar nuevo grupo"
+        styleClass="flex-1"
+      />
+      <p-button label="Asignar Grupo" icon="pi pi-plus" (onClick)="assignToGroup()" [disabled]="!assignGroupId()" />
+    </div>
+
+    <p-table [value]="memberships()" styleClass="p-datatable-sm">
+      <ng-template #header>
+        <tr>
+          <th>Grupo</th>
+          <th>Estado</th>
+          <th style="text-align: center">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-mem>
+        <tr>
+          <td>{{ mem.groups?.nombre || 'Grupo ' + mem.group_id }}</td>
+          <td>
+            <p-tag [value]="mem.active ? 'Activo' : 'Inactivo'" [severity]="mem.active ? 'success' : 'danger'" />
+          </td>
+          <td class="text-center">
+            <p-button icon="pi pi-lock" [text]="true" [rounded]="true" pTooltip="Configurar Permisos" (onClick)="editMembershipPermissions(mem)" />
+            <p-button icon="pi pi-sign-out" [text]="true" [rounded]="true" severity="danger" pTooltip="Quitar del grupo" (onClick)="removeMembership(mem.id)" />
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</p-dialog>
+
 <!-- Permissions Dialog -->
 <p-dialog
-  header="Permisos del Usuario"
+  [header]="selectedMembership() ? 'Permisos en Grupo: ' + (selectedMembership().groups?.nombre) : 'Permisos Globales del Usuario'"
   [(visible)]="permissionsDialogVisible"
   [modal]="true"
   [style]="{ width: '40rem' }"
@@ -325,7 +386,7 @@
     <p-button
       label="Guardar"
       icon="pi pi-check"
-      (onClick)="savePermissions()"
+      (onClick)="selectedMembership() ? saveMembershipPermissions() : savePermissions()"
     />
   </ng-template>
 </p-dialog>

@@ -59,6 +59,7 @@ const MyPreset = definePreset(Aura, {
     }
 });
 
+import { CookieService } from 'ngx-cookie-service';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
@@ -67,6 +68,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     provideAnimationsAsync(),
+    CookieService,
     providePrimeNG({
       theme: {
         preset: MyPreset,

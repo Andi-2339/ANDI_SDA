@@ -205,6 +205,13 @@ export class Tickets implements OnInit {
   draggedTicket = signal<Ticket | null>(null);
   dragOverColumn = signal<TicketStatus | null>(null);
 
+  canMove(ticket: Ticket): boolean {
+    const user = this.authService.currentUser();
+    if (!user) return false;
+    // Condition: Assigned to user AND has 'move' permission
+    return ticket.asignadoA === user.fullName && this.authService.hasPermission('tickets', 'move');
+  }
+
   // Change history text for detail view
   changeHistoryText = computed(() => {
     const ticket = this.selectedTicket();
@@ -216,13 +223,23 @@ export class Tickets implements OnInit {
 
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
-      if (params['groupId']) {
-        this.groupId.set(+params['groupId']);
-        this.ticketService.getTicketsByGroup(+params['groupId']).subscribe();
+      const gId = params['groupId'] ? +params['groupId'] : null;
+      if (gId) {
+        this.groupId.set(gId);
+        this.ticketService.getTicketsByGroup(gId).subscribe();
       } else {
-        this.ticketService.loadTickets().subscribe();
+        // No fixed group in URL, use global active group
+        const activeGroup = this.authService.currentUser()?.activeGroupId;
+        if (activeGroup) {
+          this.groupId.set(activeGroup);
+          this.ticketService.getTicketsByGroup(activeGroup).subscribe();
+        } else {
+          this.ticketService.loadTickets().subscribe();
+        }
       }
     });
+
+    // Handle name from query params
     this.route.queryParams.subscribe((qp) => {
       if (qp['groupName']) {
         this.groupName.set(qp['groupName']);
@@ -417,11 +434,11 @@ export class Tickets implements OnInit {
       return;
     }
 
-    if (!this.canEdit()) {
+    if (!this.canMove(ticket)) {
       this.messageService.add({
         severity: 'error',
-        summary: 'Sin permiso',
-        detail: 'No tienes permiso para cambiar el estado de los tickets',
+        summary: 'Acceso denegado',
+        detail: 'Solo puedes mover tickets asignados a ti con el permiso adecuado.',
         life: 3000,
       });
       this.draggedTicket.set(null);

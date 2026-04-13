@@ -100,6 +100,29 @@
   text-overflow: ellipsis;
 }
 
+.workspace-selector {
+  border-bottom: 1px solid var(--p-surface-700);
+}
+
+:host ::ng-deep .sidebar-select {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: var(--p-surface-600) !important;
+}
+
+:host ::ng-deep .sidebar-select .p-select-label {
+  color: var(--p-surface-100) !important;
+  font-size: 0.85rem !important;
+}
+
+.menu-category-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--p-surface-500);
+  padding: 1.5rem 1rem 0.5rem;
+  letter-spacing: 0.05em;
+}
+
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;

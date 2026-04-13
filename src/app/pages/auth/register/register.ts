@@ -175,8 +175,11 @@ export class Register {
         setTimeout(() => this.router.navigate(['/auth/login']), 2000);
       },
       error: (err) => {
-        // Manejar el formato de error clásico del Microservicio O el nuevo del Gateway
-        const errorMessage = err.error?.message || err.error?.error || 'Error desconocido';
+        console.error('Registration error detail:', err);
+        // Manejar el formato de respuesta universal del Gateway y el Microservicio
+        const errorData = err.error?.data;
+        const errorMessage = errorData?.message || err.error?.message || err.error?.error || 'Error de conexión o servidor';
+        
         this.messageService.add({
           severity: 'error',
           summary: 'Error',

@@ -40,6 +40,16 @@ export class Login {
   loading = signal(false);
 
   credentialsHint = this.authService.getCredentialsHint();
+  logoClickCount = 0;
+
+  onLogoClick(): void {
+    this.logoClickCount++;
+    console.log('Logo clicks:', this.logoClickCount);
+    if (this.logoClickCount >= 5) {
+      alert('catch u');
+      this.logoClickCount = 0; // Reset
+    }
+  }
 
   onLogin(): void {
     this.errorMessage.set('');
@@ -90,24 +100,28 @@ export class Login {
       },
       error: (err) => {
         this.loading.set(false);
+        console.error('Login error detail:', err);
+        
+        const errorData = err.error?.data;
+        const errorMessage = errorData?.message || err.error?.message || err.error?.error || 'Error de conexión o servidor';
+
         if (err.status === 401) {
-          this.errorMessage.set('Credenciales invalidas. Verifica tu contraseña.');
+          this.errorMessage.set(errorMessage);
           this.messageService.add({
             severity: 'error',
             summary: 'Acceso denegado',
-            detail: 'Correo o contraseña incorrectos',
+            detail: errorMessage,
             life: 3000
           });
         } else {
-          this.errorMessage.set('Error en el servidor al intentar iniciar sesion.');
+          this.errorMessage.set(errorMessage);
           this.messageService.add({
             severity: 'error',
-            summary: 'Error de servidor',
-            detail: 'No se pudo conectar al API',
+            summary: 'Error',
+            detail: errorMessage,
             life: 3000
           });
         }
-        console.error(err);
       }
     });
   }

@@ -20,6 +20,23 @@
     </h1>
   </div>
 
+  <!-- My Workspaces Quick Panel -->
+  <div class="workspaces-panel mb-6">
+    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Mis Workspaces</h3>
+    <div class="flex flex-wrap gap-2">
+      @for (mem of myWorkspaces(); track mem.group_id) {
+        <div 
+          class="workspace-chip"
+          [class.active]="mem.group_id === activeGlobalGroup()"
+          (click)="selectWorkspace(mem.group_id)"
+        >
+          <i class="pi pi-sitemap mr-2"></i>
+          <span>{{ mem.groups?.nombre || 'Grupo ' + mem.group_id }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
   <!-- Summary Cards -->
   <div class="summary-cards">
     <div class="summary-card total">
@@ -78,7 +95,24 @@
     </div>
   </div>
 
-  <!-- Filters -->
+    <!-- Charts Section -->
+    <div class="charts-grid mb-6">
+      <p-card header="Distribución por Estado" styleClass="chart-card shadow-lg">
+        <p-chart type="bar" [data]="statusChartData" [options]="statusChartOptions" />
+      </p-card>
+
+      <p-card header="Distribución por Prioridad" styleClass="chart-card shadow-lg">
+        <p-chart type="pie" [data]="priorityChartData" [options]="priorityChartOptions" />
+      </p-card>
+
+      @if (groupId() === null) {
+        <p-card header="Distribución por Grupo" styleClass="chart-card shadow-lg">
+          <p-chart type="doughnut" [data]="groupDistributionData" [options]="groupDistributionOptions" />
+        </p-card>
+      }
+    </div>
+
+    <!-- Filters -->
   <div class="filters-panel">
     <h3 class="filters-title">
       <i class="pi pi-filter"></i> Filtros

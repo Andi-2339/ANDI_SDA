@@ -69,4 +69,29 @@ export class UserService {
   getAllUserNames(): string[] {
     return this.users().map((u) => u.fullName);
   }
+
+  // --- MEMBERSHIPS ---
+  getUserMemberships(userId: number): Observable<any[]> {
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/memberships/${userId}`).pipe(
+      map(res => res.data)
+    );
+  }
+
+  addMembership(userId: number, groupId: number, permissions: RolePermissions): Observable<any> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/memberships`, {
+      user_id: userId,
+      group_id: groupId,
+      permissions
+    }).pipe(map(res => res.data));
+  }
+
+  updateMembership(id: number, permissions: RolePermissions): Observable<any> {
+    return this.http.put<ApiResponse<any>>(`${this.apiUrl}/memberships/${id}`, {
+      permissions
+    }).pipe(map(res => res.data));
+  }
+
+  deleteMembership(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/memberships/${id}`);
+  }
 }

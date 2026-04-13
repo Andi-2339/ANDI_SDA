@@ -265,14 +265,22 @@
               <div
                 class="kanban-card"
                 [ngClass]="{
-                  'kanban-card-dragging': draggedTicket()?.id === ticket.id
+                  'kanban-card-dragging': draggedTicket()?.id === ticket.id,
+                  'kanban-card-movable': canMove(ticket)
                 }"
-                [attr.draggable]="canEdit()"
+                [attr.draggable]="canMove(ticket)"
+                [pTooltip]="!canMove(ticket) ? 'Solo el asignado con permiso move puede arrastrar' : ''"
+                tooltipPosition="top"
                 (dragstart)="onDragStart($event, ticket)"
                 (dragend)="onDragEnd()"
                 (click)="viewTicketDetail(ticket)"
               >
-                <div class="kanban-card-title">{{ ticket.titulo }}</div>
+                <div class="kanban-card-header">
+                  <div class="kanban-card-title">{{ ticket.titulo }}</div>
+                  @if (canMove(ticket)) {
+                    <i class="pi pi-bars drag-handle"></i>
+                  }
+                </div>
                 <div class="kanban-card-meta">
                   <div class="kanban-card-row">
                     <p-tag

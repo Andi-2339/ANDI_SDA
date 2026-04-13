@@ -59,6 +59,14 @@ export class AdminUsers implements OnInit {
   isEditMode = signal(false);
   submitted = signal(false);
 
+  // Memberships state
+  membersDialogVisible = signal(false);
+  memberships = signal<any[]>([]);
+  selectedMembership = signal<any | null>(null);
+  
+  // Assign group dialog state
+  assignGroupId = signal<number | null>(null);
+
   // Permissions dialog state
   permissionsDialogVisible = signal(false);
   permissionsUserId = signal<number | null>(null);
@@ -82,6 +90,7 @@ export class AdminUsers implements OnInit {
     { key: 'edit', label: 'Editar' },
     { key: 'delete', label: 'Eliminar' },
     { key: 'manage', label: 'Gestionar' },
+    { key: 'move', label: 'Mover' },
   ];
 
   // Identificar si el usuario actual es Super Admin (puede gestionar permisos)
@@ -284,6 +293,85 @@ export class AdminUsers implements OnInit {
 
   hidePermissionsDialog(): void {
     this.permissionsDialogVisible.set(false);
+  }
+
+  // --- MEMBERSHIP MANAGEMENT ---
+  openMemberships(user: User): void {
+    this.permissionsUserId.set(user.id);
+    this.permissionsUserName.set(user.fullName);
+    this.userService.getUserMemberships(user.id).subscribe((data) => {
+      this.memberships.set(data);
+      this.membersDialogVisible.set(true);
+    });
+  }
+
+  editMembershipPermissions(membership: any): void {
+    this.selectedMembership.set(membership);
+    this.editPermissions.set({
+      groups: { ...membership.permissions.groups },
+      users: { ...membership.permissions.users },
+      tickets: { ...membership.permissions.tickets },
+    });
+    this.permissionsDialogVisible.set(true);
+  }
+
+  saveMembershipPermissions(): void {
+    const mem = this.selectedMembership();
+    if (!mem) return;
+
+    this.userService.updateMembership(mem.id, this.editPermissions()).subscribe(() => {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Permisos de Grupo',
+        detail: 'Los permisos del usuario en este grupo han sido actualizados',
+        life: 3000
+      });
+      // Refresh
+      this.openMemberships({ id: this.permissionsUserId(), fullName: this.permissionsUserName() } as any);
+      this.permissionsDialogVisible.set(false);
+    });
+  }
+
+  assignToGroup(): void {
+    const userId = this.permissionsUserId();
+    const groupId = this.assignGroupId();
+    if (!userId || !groupId) return;
+
+    // Check if already member
+    if (this.memberships().some(m => m.group_id === groupId)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Ya es miembro',
+        detail: 'El usuario ya pertenece a este grupo',
+        life: 3000
+      });
+      return;
+    }
+
+    this.userService.addMembership(userId, groupId, this.userService.getEmptyPermissions()).subscribe(() => {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Grupo asignado',
+        detail: 'El usuario ahora es miembro del nuevo grupo',
+        life: 3000
+      });
+      this.openMemberships({ id: userId, fullName: this.permissionsUserName() } as any);
+      this.assignGroupId.set(null);
+    });
+  }
+
+  removeMembership(membershipId: number): void {
+    this.confirmationService.confirm({
+      message: '¿Seguro que deseas eliminar al usuario de este grupo?',
+      header: 'Confirmar salida',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.userService.deleteMembership(membershipId).subscribe(() => {
+          this.messageService.add({ severity: 'success', summary: 'Eliminado', detail: 'Membresía eliminada' });
+          this.openMemberships({ id: this.permissionsUserId(), fullName: this.permissionsUserName() } as any);
+        });
+      }
+    });
   }
 
   private resetForm(): void {

@@ -179,6 +179,55 @@ async function routes(fastify, options) {
     if (error) return reply.code(400).send({ error: error.message });
     return reply.code(204).send();
   });
+
+  // --- RUTAS DE MEMBRESÍAS (GRANULARIDAD POR GRUPO) ---
+
+  // GET /users/memberships/:userId
+  fastify.get('/memberships/:userId', async (request, reply) => {
+    const { data, error } = await supabase
+      .from('group_members')
+      .select('*, groups(nombre)')
+      .eq('user_id', request.params.userId);
+    
+    if (error) return reply.code(500).send({ error: error.message });
+    return reply.send(data);
+  });
+
+  // POST /users/memberships
+  fastify.post('/memberships', async (request, reply) => {
+    const { user_id, group_id, permissions } = request.body;
+    const { data, error } = await supabase
+      .from('group_members')
+      .insert([{ user_id, group_id, permissions }])
+      .select();
+    
+    if (error) return reply.code(400).send({ error: error.message });
+    return reply.code(201).send(data[0]);
+  });
+
+  // PUT /users/memberships/:id
+  fastify.put('/memberships/:id', async (request, reply) => {
+    const { permissions, active } = request.body;
+    const { data, error } = await supabase
+      .from('group_members')
+      .update({ permissions, active })
+      .eq('id', request.params.id)
+      .select();
+    
+    if (error) return reply.code(400).send({ error: error.message });
+    return reply.send(data[0]);
+  });
+
+  // DELETE /users/memberships/:id
+  fastify.delete('/memberships/:id', async (request, reply) => {
+    const { error } = await supabase
+      .from('group_members')
+      .delete()
+      .eq('id', request.params.id);
+    
+    if (error) return reply.code(400).send({ error: error.message });
+    return reply.code(204).send();
+  });
 }
 
 module.exports = routes;
