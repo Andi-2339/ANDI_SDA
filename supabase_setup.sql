@@ -30,16 +30,33 @@ CREATE TABLE public.users (
     "groupId" INTEGER REFERENCES public.groups(id) ON DELETE SET NULL,
     active BOOLEAN DEFAULT true,
     permissions JSONB DEFAULT '{
-      "groups": {"view": false, "add": false, "edit": false, "delete": false, "manage": false},
-      "users": {"view": false, "add": false, "edit": false, "delete": false, "manage": false},
-      "tickets": {"view": false, "add": false, "edit": false, "delete": false, "manage": false}
+      "groups": {"view": false, "add": false, "edit": false, "delete": false, "manage": false, "move": false},
+      "users": {"view": false, "add": false, "edit": false, "delete": false, "manage": false, "move": false},
+      "tickets": {"view": false, "add": false, "edit": false, "delete": false, "manage": false, "move": false}
     }',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 ALTER TABLE public.users DISABLE ROW LEVEL SECURITY;
 
+-- 2.1 Tabla de Membresías (Muchos a Muchos: Usuarios <-> Grupos)
+-- Esta tabla permite que un usuario tenga permisos distintos en cada grupo
+CREATE TABLE IF NOT EXISTS public.group_members (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES public.users(id) ON DELETE CASCADE,
+    group_id INTEGER REFERENCES public.groups(id) ON DELETE CASCADE,
+    permissions JSONB DEFAULT '{
+      "groups": {"view": true, "add": false, "edit": false, "delete": false, "manage": false, "move": false},
+      "users": {"view": false, "add": false, "edit": false, "delete": false, "manage": false, "move": false},
+      "tickets": {"view": true, "add": false, "edit": false, "delete": false, "manage": false, "move": false}
+    }',
+    active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    UNIQUE(user_id, group_id)
+);
+ALTER TABLE public.group_members DISABLE ROW LEVEL SECURITY;
+
 -- 3. Tabla de Tickets
-CREATE TABLE public.tickets (
+CREATE TABLE IF NOT EXISTS public.tickets (
     id SERIAL PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     descripcion TEXT,
@@ -76,8 +93,20 @@ VALUES (
   'admin@erp.com', 
   1, 
   '{
-    "groups": {"view": true, "add": true, "edit": true, "delete": true, "manage": true},
-    "users": {"view": true, "add": true, "edit": true, "delete": true, "manage": true},
-    "tickets": {"view": true, "add": true, "edit": true, "delete": true, "manage": true}
+    "groups": {"view": true, "add": true, "edit": true, "delete": true, "manage": true, "move": true},
+    "users": {"view": true, "add": true, "edit": true, "delete": true, "manage": true, "move": true},
+    "tickets": {"view": true, "add": true, "edit": true, "delete": true, "manage": true, "move": true}
+  }'
+);
+
+-- Insertar membresía del Admin
+INSERT INTO public.group_members (user_id, group_id, permissions)
+VALUES (
+  1, 
+  1, 
+  '{
+    "groups": {"view": true, "add": true, "edit": true, "delete": true, "manage": true, "move": true},
+    "users": {"view": true, "add": true, "edit": true, "delete": true, "manage": true, "move": true},
+    "tickets": {"view": true, "add": true, "edit": true, "delete": true, "manage": true, "move": true}
   }'
 );

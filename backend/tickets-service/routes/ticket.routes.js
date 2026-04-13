@@ -62,6 +62,22 @@ async function routes(fastify, options) {
     return reply.send(data[0]);
   });
 
+  // PATCH /tickets/:id/status
+  fastify.patch('/:id/status', async (request, reply) => {
+    const id = request.params.id;
+    const { estado } = request.body;
+
+    if (!estado) {
+      return reply.code(400).send({ error: 'El campo estado es requerido' });
+    }
+
+    const { data, error } = await supabase.from('tickets').update({ estado }).eq('id', id).select();
+    if (error) return reply.code(400).send({ error: error.message });
+    if (data.length === 0) return reply.code(404).send({ error: 'Ticket non encontrado' });
+    
+    return reply.send(data[0]);
+  });
+
   // DELETE /tickets/:id
   fastify.delete('/:id', async (request, reply) => {
     const id = request.params.id;

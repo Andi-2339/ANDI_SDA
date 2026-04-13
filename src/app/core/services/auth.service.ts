@@ -43,10 +43,11 @@ export class AuthService {
         const authUser: AuthUser = {
           id: response.id,
           email: response.email,
-          password: password, // not ideal to store password in client but keeping structure
           fullName: response.fullName, 
+          username: response.username,
           permissions: response.permissions,
-          groupId: response.groupId
+          memberships: response.memberships || [],
+          activeGroupId: response.memberships?.length > 0 ? response.memberships[0].group_id : undefined
         };
         
         return authUser;
@@ -60,6 +61,15 @@ export class AuthService {
     );
   }
 
+  setActiveGroup(groupId: number): void {
+    const user = this.currentUser();
+    if (user) {
+      const updatedUser = { ...user, activeGroupId: groupId };
+      this.currentUser.set(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  }
+
   logout(): void {
     this.currentUser.set(null);
     localStorage.removeItem('token');
@@ -69,7 +79,16 @@ export class AuthService {
   hasPermission(module: PermissionModule, action: PermissionAction): boolean {
     const user = this.currentUser();
     if (!user) return false;
-    return user.permissions[module]?.[action] || false;
+
+    // Priorizar permisos del grupo activo si existe
+    if (user.activeGroupId) {
+      const membership = user.memberships.find(m => m.group_id === user.activeGroupId);
+      if (membership) {
+        return membership.permissions[module]?.[action] === true;
+      }
+    }
+
+    return user.permissions[module]?.[action] === true;
   }
 
   getCredentialsHint(): string {

@@ -15,6 +15,8 @@ fastify.register(require('@fastify/jwt'), {
   secret: process.env.JWT_SECRET || 'super_secret_jwt_key_123' 
 });
 
+const supabase = require('./supabase');
+
 // Gancho Global de Seguridad y Permisos
 fastify.addHook('preHandler', async (request, reply) => {
   // 1. Excluir rutas públicas (Autenticación)
@@ -26,42 +28,93 @@ fastify.addHook('preHandler', async (request, reply) => {
   try {
     await request.jwtVerify();
   } catch (err) {
-    return reply.code(401).send({ error: 'Token inválido o ausente' });
+    return reply.code(401).send({ 
+      status: 'error', 
+      code: 401, 
+      message: 'Token inválido o ausente',
+      details: err.message 
+    });
   }
 
   // 3. Validar Permisos (Autorización)
-  const userPermissions = request.user.role; // Extraído del JWT
+  const userRole = request.user.role; // Permisos globales
+  const memberships = request.user.memberships || []; // Membresías por grupo
+  
   const method = request.method;
   const url = request.url;
 
-  // Mapa de Acción según Método HTTP
-  const actionMap = {
-    'GET': 'view',
-    'POST': 'add',
-    'PUT': 'edit',
-    'DELETE': 'delete'
-  };
-
-  const action = actionMap[method];
-  
-  // Identificar el recurso (groups, tickets, users)
+  // Identificar el recurso y la acción de forma más granular
   let resource = null;
+  let action = null;
+  let ticketId = null;
+
   if (url.startsWith('/groups')) resource = 'groups';
-  if (url.startsWith('/tickets')) resource = 'tickets';
   if (url.startsWith('/users')) resource = 'users';
 
-  // Si no hay recurso identificado, permitimos (ej: rutas base)
-  if (!resource) return;
+  // Lógica específica para Tickets
+  if (url.startsWith('/tickets')) {
+    resource = 'tickets';
+    if (method === 'POST') action = 'add';
+    else if (method === 'GET') action = 'view';
+    else if (method === 'DELETE') action = 'delete';
+    else if (method === 'PUT') action = 'edit';
+    else if (method === 'PATCH' && url.includes('/status')) {
+      action = 'move';
+      // Extraer ID del ticket de la URL /tickets/:id/status
+      const parts = url.split('/');
+      ticketId = parts[2];
+    }
+  } else {
+    // Mapa de Acción genérico para otros recursos
+    const actionMap = { 'GET': 'view', 'POST': 'add', 'PUT': 'edit', 'DELETE': 'delete' };
+    action = actionMap[method];
+  }
+
+  if (!resource || !action) return;
+
+  // Determinar qué permisos usar (Globales o del Grupo actual)
+  // Nota: En una implementación real, el cliente enviaría un header 'x-group-id'
+  // Por ahora, si el usuario tiene una membresía activa, usamos esos permisos.
+  let userPermissions = userRole; 
+  const activeGroupId = request.headers['x-group-id'];
+  if (activeGroupId) {
+    const membership = memberships.find(m => m.group_id == activeGroupId);
+    if (membership) userPermissions = membership.permissions;
+  }
 
   // Verificar si el usuario tiene el permiso
   const hasPermission = userPermissions && userPermissions[resource] && userPermissions[resource][action];
 
   if (!hasPermission) {
-    fastify.log.warn(`Acceso denegado: Usuario ${request.user.username} intentó ${action} en ${resource}`);
     return reply.code(403).send({ 
-      error: 'Acceso denegado', 
-      message: `No tienes permisos para realizar la acción '${action}' en '${resource}'` 
+      status: 'error',
+      code: 403, 
+      message: `No tienes permisos para realizar la acción '${action}' en el recurso '${resource}'`,
+      details: null
     });
+  }
+
+  // 4. VALIDACIÓN DE PROPIEDAD/ASIGNACIÓN (Regla de Negocio en Gateway)
+  if (resource === 'tickets' && action === 'move' && ticketId) {
+    const { data: ticket, error } = await supabase
+      .from('tickets')
+      .select('asignadoA')
+      .eq('id', ticketId)
+      .single();
+
+    if (error || !ticket) {
+      return reply.code(404).send({ status: 'error', code: 404, message: 'Ticket no encontrado', details: null });
+    }
+
+    // El ticket debe estar asignado al usuario que hace la petición
+    if (ticket.asignadoA !== request.user.username) {
+      return reply.code(403).send({ 
+        status: 'error',
+        code: 403, 
+        message: 'Acceso denegado: Solo puedes mover tickets que tengas asignados.',
+        details: { ticketId, assignedTo: ticket.asignadoA, currentUser: request.user.username }
+      });
+    }
   }
 
   // PROTECCIÓN EXTRA: Solo alguien con permiso 'manage' puede enviar el campo 'permissions' en el body
@@ -70,10 +123,11 @@ fastify.addHook('preHandler', async (request, reply) => {
     if (body && body.permissions) {
       const canManage = userPermissions && userPermissions.users && userPermissions.users.manage;
       if (!canManage) {
-        fastify.log.warn(`Intento de usurpación: Usuario ${request.user.username} intentó modificar permisos sin autorización`);
         return reply.code(403).send({ 
-          error: 'Acceso denegado', 
-          message: 'No tienes permisos para modificar los roles o permisos de los usuarios.' 
+          status: 'error',
+          code: 403, 
+          message: 'No tienes permisos para modificar los roles o permisos de los usuarios.',
+          details: null
         });
       }
     }

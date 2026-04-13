@@ -24,7 +24,7 @@
   <!-- Toolbar -->
   <p-toolbar styleClass="group-users-toolbar">
     <ng-template #start>
-      <ng-container *appHasPermission="['users', 'add']">
+      <ng-container *appHasPermission="'users:add'">
         <p-button
           label="Nuevo Usuario"
           icon="pi pi-plus"
@@ -90,7 +90,7 @@
           <span class="address-cell">{{ user.address }}</span>
         </td>
         <td class="actions-cell">
-          <ng-container *appHasPermission="['users', 'edit']">
+          <ng-container *appHasPermission="'users:edit'">
             <p-button
               icon="pi pi-pencil"
               [rounded]="true"
@@ -101,7 +101,7 @@
               (onClick)="editUser(user)"
             />
           </ng-container>
-          <ng-container *appHasPermission="['users', 'delete']">
+          <ng-container *appHasPermission="'users:delete'">
             <p-button
               icon="pi pi-trash"
               [rounded]="true"

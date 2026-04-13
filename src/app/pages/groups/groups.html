@@ -8,7 +8,7 @@
   <p-toolbar styleClass="groups-toolbar">
     <ng-template #start>
       <p-button
-        *appHasPermission="['groups', 'add']"
+        *appHasPermission="'groups:add'"
         label="Nuevo Grupo"
         icon="pi pi-plus"
         severity="primary"
@@ -93,7 +93,7 @@
         </td>
         <td class="actions-cell">
           <p-button
-            *appHasPermission="['groups', 'edit']"
+            *appHasPermission="'groups:edit'"
             icon="pi pi-pencil"
             [rounded]="true"
             severity="info"
@@ -103,7 +103,7 @@
             (onClick)="editGroup(group)"
           />
           <p-button
-            *appHasPermission="['groups', 'delete']"
+            *appHasPermission="'groups:delete'"
             icon="pi pi-trash"
             [rounded]="true"
             severity="danger"

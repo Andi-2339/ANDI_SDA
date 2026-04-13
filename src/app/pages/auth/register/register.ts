@@ -175,11 +175,13 @@ export class Register {
         setTimeout(() => this.router.navigate(['/auth/login']), 2000);
       },
       error: (err) => {
+        // Manejar el formato de error clásico del Microservicio O el nuevo del Gateway
+        const errorMessage = err.error?.message || err.error?.error || 'Error desconocido';
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo completar el registro: ' + (err.error?.error || 'Error desconocido'),
-          life: 3000
+          detail: 'No se pudo completar el registro: ' + errorMessage,
+          life: 5000
         });
       }
     });

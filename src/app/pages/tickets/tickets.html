@@ -27,7 +27,7 @@
   <p-toolbar styleClass="tickets-toolbar">
     <ng-template #start>
       <div class="toolbar-start">
-        <ng-container *appHasPermission="['tickets', 'add']">
+        <ng-container *appHasPermission="'tickets:add'">
           <p-button
             label="Nuevo Ticket"
             icon="pi pi-plus"
@@ -195,7 +195,7 @@
               tooltipPosition="top"
               (onClick)="viewTicketDetail(ticket)"
             />
-            <ng-container *appHasPermission="['tickets', 'edit']">
+            <ng-container *appHasPermission="'tickets:edit'">
               <p-button
                 icon="pi pi-pencil"
                 [rounded]="true"
@@ -206,7 +206,7 @@
                 (onClick)="editTicket(ticket)"
               />
             </ng-container>
-            <ng-container *appHasPermission="['tickets', 'delete']">
+            <ng-container *appHasPermission="'tickets:delete'">
               <p-button
                 icon="pi pi-trash"
                 [rounded]="true"

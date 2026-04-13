@@ -1,4 +1,4 @@
-export type PermissionAction = 'view' | 'add' | 'edit' | 'delete' | 'manage';
+export type PermissionAction = 'view' | 'add' | 'edit' | 'delete' | 'manage' | 'move';
 export type PermissionModule = 'groups' | 'users' | 'tickets';
 
 export interface ModulePermissions {
@@ -7,6 +7,7 @@ export interface ModulePermissions {
   edit: boolean;
   delete: boolean;
   manage?: boolean;
+  move?: boolean;
 }
 
 export interface RolePermissions {
@@ -15,11 +16,18 @@ export interface RolePermissions {
   tickets: ModulePermissions;
 }
 
+export interface UserMembership {
+  group_id: number;
+  permissions: RolePermissions;
+  active: boolean;
+}
+
 export interface AuthUser {
   id: number;
   email: string;
-  password: string;
   fullName: string;
-  permissions: RolePermissions;
-  groupId?: number;
+  username: string;
+  permissions: RolePermissions; // Global permissions
+  memberships: UserMembership[];
+  activeGroupId?: number;
 }
